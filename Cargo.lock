@@ -1965,7 +1965,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-cisco"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "futures",
  "omnisync-core",
@@ -1981,7 +1981,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-cli"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "clap",
  "clap_complete",
@@ -2018,7 +2018,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-core"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "indicatif",
  "insta",
@@ -2035,7 +2035,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-fortios"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "omnisync-core",
  "omnisync-tls",
@@ -2052,7 +2052,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-netbox"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "futures",
  "omnisync-core",
@@ -2068,7 +2068,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-proxmox"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "futures",
  "ipnet",
@@ -2086,7 +2086,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-redfish"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "omnisync-core",
  "omnisync-netbox",
@@ -2107,7 +2107,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-ssh"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "data-encoding",
  "hmac",
@@ -2121,7 +2121,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-tls"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "rustls",
  "sha2",
@@ -2130,7 +2130,7 @@ dependencies = [
 
 [[package]]
 name = "omnisync-vmware"
-version = "0.2.1"
+version = "0.3.0"
 dependencies = [
  "data-encoding",
  "futures",

@@ -2813,7 +2813,7 @@ mod tests {
             let ran = bench.run_raw(&Untouchable, &[form]).await;
             assert_eq!(
                 (ran.code, ran.stdout.as_str(), ran.stderr.as_str()),
-                (0, "netbox-omnisync 0.2.1\n", ""),
+                (0, "netbox-omnisync 0.3.0\n", ""),
                 "{form}"
             );
         }
@@ -2828,7 +2828,7 @@ mod tests {
         let ran = bench.run_raw(&Untouchable, &["licenses"]).await;
         assert_eq!((ran.code, ran.stderr.as_str()), (0, ""));
         let mut lines = ran.stdout.lines();
-        assert_eq!(lines.next(), Some("netbox-omnisync 0.2.1, licensed under MIT OR Apache-2.0, at your option."));
+        assert_eq!(lines.next(), Some("netbox-omnisync 0.3.0, licensed under MIT OR Apache-2.0, at your option."));
         // Both texts, in full: the binary travels without the repository.
         assert!(ran.stdout.contains("Permission is hereby granted, free of charge"), "{}", ran.stdout);
         assert!(ran.stdout.contains("TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION"), "{}", ran.stdout);
