@@ -1,0 +1,12 @@
+{
+ "value": {
+  "associable_types": [
+   "VirtualMachine"
+  ],
+  "cardinality": "MULTIPLE",
+  "description": "",
+  "id": "urn:vmomi:InventoryServiceCategory:00000000-0000-4000-8000-000000000279:GLOBAL",
+  "name": "category-3",
+  "used_by": []
+ }
+}

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soapenv:Body>
+<QueryNetworkHintResponse xmlns="urn:vim25"><returnval><device>vmnic0</device><subnet><vlanId>2903</vlanId><ipSubnet>198.18.13.128-198.18.13.143</ipSubnet></subnet><subnet><vlanId>26</vlanId><ipSubnet>198.18.10.1-198.18.10.254</ipSubnet></subnet><subnet><vlanId>2901</vlanId><ipSubnet>0.0.0.1-255.255.255.254</ipSubnet></subnet></returnval><returnval><device>vmnic1</device><subnet><vlanId>2903</vlanId><ipSubnet>198.18.13.128-198.18.13.143</ipSubnet></subnet><subnet><vlanId>26</vlanId><ipSubnet>198.18.10.1-198.18.10.254</ipSubnet></subnet><subnet><vlanId>2901</vlanId><ipSubnet>0.0.0.1-255.255.255.254</ipSubnet></subnet><connectedSwitchPort><cdpVersion>2</cdpVersion><timeout>60</timeout><ttl>165</ttl><samples>7124430</samples><devId>nexus04.lab.example(FOC0000A0A4)</devId><address>198.18.12.241</address><portId>Ethernet1/40</portId><deviceCapability><router>true</router><transparentBridge>false</transparentBridge><sourceRouteBridge>false</sourceRouteBridge><networkSwitch>true</networkSwitch><host>false</host><igmpEnabled>true</igmpEnabled><repeater>false</repeater></deviceCapability><softwareVersion>Cisco Nexus Operating System (NX-OS) Software, Version 7.0(3)I4(7)</softwareVersion><hardwarePlatform>N3K-C3064PQ-10GX</hardwarePlatform><ipPrefix>0.0.0.0</ipPrefix><ipPrefixLen>0</ipPrefixLen><vlan>1</vlan><fullDuplex>true</fullDuplex><mtu>1500</mtu><systemName>nexus04.lab.example</systemName><systemOID>1.3.6.1.4.1.9.12.3.1.3.1163</systemOID><mgmtAddr>198.19.1.2</mgmtAddr><location></location></connectedSwitchPort></returnval><returnval><device>vusb0</device></returnval></QueryNetworkHintResponse>
+</soapenv:Body>
+</soapenv:Envelope>

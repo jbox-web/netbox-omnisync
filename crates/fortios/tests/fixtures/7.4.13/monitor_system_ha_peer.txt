@@ -1,0 +1,1 @@
+{"http_method":"GET","results":[{"serial_no":"FG101FTK22000001","vcluster_id":0,"priority":128,"hostname":"LABLU-FWL01","master":true,"primary":true},{"serial_no":"FG101FTK22000002","vcluster_id":0,"priority":50,"hostname":"LABBS-FWL01"}],"vdom":"root","path":"system","name":"ha-peer","status":"success","serial":"FG101FTK22000001","version":"v7.4.13","build":2933}

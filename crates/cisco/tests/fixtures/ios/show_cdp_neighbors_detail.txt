@@ -1,0 +1,37 @@
+
+-------------------------
+Device ID: nexus02.lab01(FOC0852S7R5)
+Entry address(es): 
+  IP address: 192.0.2.240
+Platform: N3K-C3064PQ-10GE,  Capabilities: Router Switch IGMP CVTA phone port 
+Interface: TenGigabitEthernet1/0/1,  Port ID (outgoing port): Ethernet1/36
+Holdtime : 158 sec
+
+Version :
+Cisco Nexus Operating System (NX-OS) Software, Version 7.0(3)I2(4)
+
+advertisement version: 2
+Native VLAN: 1
+Duplex: full
+Management address(es): 
+  IP address: 192.168.1.2
+
+-------------------------
+Device ID: nexus01.lab01(FOC9792A4K9)
+Entry address(es): 
+  IP address: 192.0.2.239
+Platform: N3K-C3064PQ-10GX,  Capabilities: Router Switch IGMP CVTA phone port 
+Interface: TenGigabitEthernet1/0/2,  Port ID (outgoing port): Ethernet1/36
+Holdtime : 158 sec
+
+Version :
+Cisco Nexus Operating System (NX-OS) Software, Version 7.0(3)I2(4)
+
+advertisement version: 2
+Native VLAN: 1
+Duplex: full
+Management address(es): 
+  IP address: 192.168.1.1
+
+
+Total cdp entries displayed : 2

@@ -1,0 +1,27 @@
+# The targets a release ships (scripts/release-build.sh): a dependency only
+# another target compiles (chrono, for wasm32 alone, through russh-util) is
+# never in a binary, and is not checked.
+[graph]
+targets = [
+    "x86_64-unknown-linux-musl",
+    "aarch64-unknown-linux-musl",
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+]
+
+# cargo deny check licenses: every dependency must be under one of these.
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unlicense",
+    "CDLA-Permissive-2.0",
+    # scraper's CSS selector engine (Nipper reports): file-level copyleft, used unmodified.
+    "MPL-2.0",
+]
+confidence-threshold = 0.9

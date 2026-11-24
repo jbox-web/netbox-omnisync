@@ -1,0 +1,139 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+  # Weekly: a new RUSTSEC advisory against a locked crate is seen without a
+  # push, and the tests against a real NetBox run (they are too slow for a push).
+  schedule:
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+# Actions are pinned by commit, so a moved tag cannot run other code.
+jobs:
+  fmt:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain comes from rust-toolchain.toml.
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo fmt --all --check
+
+  rust:
+    name: rust (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        # The runners of the release builds (build.yml): what CI tests is what ships.
+        os: [ubuntu-24.04, macos-26]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - run: cargo clippy --workspace --all-targets --locked -- -D warnings
+      - run: cargo test --workspace --locked
+
+  # What the compiler does not check: the links of the documentation, the
+  # spelling, the release scripts and these workflows themselves. The tools
+  # are pinned in mise.toml; `mise run dev:lint` runs the same locally.
+  checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - name: Documentation links
+        env:
+          RUSTDOCFLAGS: -D warnings
+        run: cargo doc --workspace --no-deps --document-private-items --locked
+      - name: Spelling
+        run: typos
+      - name: Shell scripts
+        run: shellcheck scripts/*.sh
+      - name: Workflows
+        run: actionlint
+      - name: Workflow security
+        run: zizmor --offline .github/workflows
+
+  # What the unit tests execute, region by region: the summary is in the log
+  # of the job, the report to browse in its artifact. No threshold: a figure to
+  # read, not a gate.
+  coverage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show active-toolchain || rustup toolchain install
+      # cargo-llvm-cov is a mise tool, pinned in mise.toml.
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      - run: mise run dev:coverage
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: coverage
+          path: target/llvm-cov/html/
+          if-no-files-found: error
+          retention-days: 14
+
+  # Advisories, bans, licences and sources: "done" is `cargo deny check` whole
+  # (CONTRIBUTING.md), not its licences alone.
+  deny:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2
+        with:
+          command: check
+
+  # The only tests against a real NetBox, one per supported release (the last
+  # patch of each minor): they prove that the filters the tool sends exist
+  # there and that a second run writes nothing. Weekly or by hand, as they
+  # take minutes.
+  integration:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        netbox: [v4.5.10, v4.6.10, v4.7.5]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      - run: mise run dev:test-integration
+        env:
+          NETBOX_VERSION: ${{ matrix.netbox }}
+
+  # The release binaries, built as release.yml builds them on a tag: a release
+  # build that no longer works is seen here, not during a release.
+  release-build:
+    uses: ./.github/workflows/build.yml

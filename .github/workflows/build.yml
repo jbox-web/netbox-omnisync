@@ -1,0 +1,80 @@
+name: Build
+
+# The four release binaries, their checksums and the third-party notices,
+# built the way a release ships them (scripts/release-build.sh, dev:licenses).
+# Called by ci.yml on every push and by release.yml on a tag: a release build
+# that no longer works is seen before a tag is pushed, not during the release.
+on:
+  workflow_call:
+
+# Every job starts with no permission and opts in to what it needs.
+permissions: {}
+
+env:
+  CARGO_TERM_COLOR: always
+
+# Actions are pinned by commit, so a moved tag cannot run other code.
+jobs:
+  binary:
+    name: binary (${{ matrix.platform }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Each Linux binary is built in docker on a runner of its own
+          # architecture: no emulation, no cross toolchain.
+          - platform: linux-amd64
+            runner: ubuntu-24.04
+          - platform: linux-arm64
+            runner: ubuntu-24.04-arm
+          # Both slices of the universal binary, on Apple silicon.
+          - platform: darwin-universal
+            runner: macos-26
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain comes from rust-toolchain.toml. No build cache: what a
+      # release ships is compiled from the sources and Cargo.lock alone.
+      - run: rustup show active-toolchain || rustup toolchain install
+      # cargo-about, pinned in mise.toml: the script generates the third-party
+      # notices the binary embeds (`netbox-omnisync licenses`).
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      # Fails unless the binary is static (Linux) or loads only what macOS
+      # ships (Darwin), answers --version with the workspace version and
+      # embeds the notices.
+      - name: Build the binary and its checksum
+        env:
+          PLATFORM: ${{ matrix.platform }}
+        run: scripts/release-build.sh "$PLATFORM"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-${{ matrix.platform }}
+          # The notices the script also wrote are the job `licenses`' to ship.
+          path: dist/netbox-omnisync-*
+          if-no-files-found: error
+          retention-days: 5
+
+  licenses:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # cargo-about is a mise tool, pinned in mise.toml.
+      - uses: jdx/mise-action@90f833d396d0cc3674b631d2d225e306476c303a # v5.2.10
+      - name: Generate the third-party notices
+        run: mise run dev:licenses
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: dist-licenses
+          path: dist/
+          if-no-files-found: error
+          retention-days: 5

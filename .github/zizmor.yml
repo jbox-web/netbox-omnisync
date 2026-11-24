@@ -1,0 +1,6 @@
+# zizmor (mise run dev:lint): security audit of the workflows.
+rules:
+  # It asks for `uses: $/.github/workflows/build.yml`, which actionlint 1.7.12
+  # refuses as a reusable workflow call: `./` stays until both agree.
+  self-repository:
+    disable: true

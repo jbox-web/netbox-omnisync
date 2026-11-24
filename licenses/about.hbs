@@ -1,0 +1,19 @@
+netbox-omnisync includes the following third-party software. The MPL-2.0
+components are used unmodified; their source code is at
+https://github.com/servo/rust-cssparser (cssparser, cssparser-macros),
+https://github.com/servo/stylo (selectors) and
+https://github.com/upsuper/dtoa-short (dtoa-short).
+
+{{#each overview}}
+- {{{name}}}: {{count}} crate(s)
+{{/each}}
+
+{{#each licenses}}
+================================================================================
+{{{name}}}
+Used by: {{#each used_by}}{{crate.name}} {{crate.version}}{{#unless @last}}, {{/unless}}{{/each}}
+--------------------------------------------------------------------------------
+
+{{{text}}}
+
+{{/each}}

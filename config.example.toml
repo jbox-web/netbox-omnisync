@@ -1,0 +1,489 @@
+# Example configuration, with fictitious values: copy it to config.toml (not
+# versioned) and fill in the real fleet.
+#
+# How this file reads: every key has its comment above it, ending with
+# "Required." or with what happens when it is left out ("Default: ...").
+# A key that is commented out is optional and shown with an example value.
+# An unknown key in [netbox], in [ssh] or in a [[sources]] entry is refused:
+# a typo never silently leaves a setting at its default.
+#
+# Secrets: none here, they all come from the environment. The same file is
+# loaded on every host that runs the tool; a run needs NETBOX_TOKEN and the
+# secrets of the sources it selects (--source, --kind, --type), all of them
+# without a filter (all those of its host, when the file says which host
+# launches each source: runners below), so each host only holds the secrets
+# of the sources it launches.
+#
+#   Variable                              Secret of
+#   NETBOX_TOKEN                          NetBox, an API token with write access (every run)
+#   SWITCH_PASSWORD                       the switches and routers read with ssh.auth = "password",
+#   SWITCH_<NAME>_PASSWORD                  or one of them, which wins over SWITCH_PASSWORD
+#   FIREWALL_<NAME>_USERNAME, _PASSWORD   a firewall: its API account, both required
+#   <NAME>_USERNAME, <NAME>_PASSWORD      a hypervisor: its account (Proxmox, vCenter),
+#   <NAME>_TOKEN                            or for Proxmox its API token alone, which names
+#                                           its account (user@realm!name=secret)
+#   <NAME>_USERNAME, <NAME>_PASSWORD      a bmc entry: the account of all its BMCs (no token)
+#   <NAME>_SSH_PASSWORD                   the nodes of a Proxmox read with neighbors = "lldpd"
+#                                           and ssh.auth = "password", by a run that reads
+#                                           switches too
+#
+# <NAME> is the name of the source upper-cased, every non-alphanumeric
+# character replaced by _ (pve01.lab01 -> PVE01_LAB01_TOKEN, nexus01.lab01 ->
+# SWITCH_NEXUS01_LAB01_PASSWORD).
+#
+# Settings the environment overrides: NETBOX_URL (netbox.url), SWITCH_USERNAME
+# (ssh.username), SWITCH_SSH_AUTH (ssh.auth), SWITCH_KEY_FILE (ssh.key_file).
+#
+# Paths: ~ is the HOME of the environment; a relative ca_file or report is
+# relative to this file.
+
+# --- Common settings ---------------------------------------------------------
+
+# The journal of the runs: one JSON line per sync (not per dry run), read by
+# `check` (Icinga) and `digest` (the daily mail); entries older than 8 days
+# are dropped. Created readable by all (it holds names and addresses, no
+# secret), in a directory created readable by all when missing; every run
+# that writes it must be the same user (the lock is per user). Relative to
+# this file. Default: journal.jsonl next to the lock file, in
+# $XDG_STATE_HOME/netbox-omnisync (~/.local/state/netbox-omnisync), a
+# directory only the user of the runs can read: name another one when the
+# monitoring reads it as another user.
+# journal = "/var/lib/netbox-omnisync/journal.jsonl"
+
+# The hosts that run the tool, when this file is on several of them: each by
+# its full name, the one `hostname -f` prints there, compared as written. Every
+# [[sources]] entry then names the one that launches it (runner), and every
+# host of the list launches at least one source: a sync without filter runs
+# the sources of its host, the filters choose among them, and check judges
+# them alone. A host that is not in the list runs nothing (sync --dry-run
+# --runner HOST shows what one of them would do). Default: one host launches
+# every source, and no entry takes a runner.
+# runners = ["sync01.lab01", "sat01.lab02"]
+
+# Domain suffixes stripped from the neighbour names announced over LLDP and
+# CDP, before they are looked up in NetBox. Default: none stripped.
+domains = ["switch.example.net"]
+
+# Name a neighbour announces over LLDP or CDP -> its NetBox device, when the
+# two differ. Default: none.
+[aliases]
+"esx01-mgmt" = "esx01.lab01"
+
+[netbox]
+# URL of NetBox; plain http is only taken on the loopback. Required (or
+# NETBOX_URL).
+url = "https://netbox.example.net"
+
+# Seconds a request may take. Default: 60. The OpenAPI schema, read once at
+# the start of a run, has a bound of its own: 300 s, or this one if longer.
+timeout = 30
+
+# false accepts any certificate: for a test instance only. Default: true.
+validate_certs = true
+
+# Certificate authorities trusted on top of the system ones (PEM).
+# Default: the system ones only.
+# ca_file = "ca/example-ca.pem"
+
+# What a run does with a NetBox of a release this build was not tested with
+# (it supports 4.5, 4.6 and 4.7): refuse stops the run before any source
+# is read, warn runs it and says so in the report. NetBox changes the shape of
+# its objects from one release to the next, and drops a field it does not
+# know: warn may write wrong values. Default: refuse.
+# unsupported_version = "warn"
+
+# When two sources report the same object differently, the first one named
+# wins; a source that only wants an object to exist never keeps another from
+# describing it. Every name must be a source of this file. Default: none
+# (sources left out of the list come last, by name).
+source_priority = [
+  "vcenter01.lab01",
+  "pve01.lab01",
+  "bmc.lab01",
+  "nexus01.lab01",
+  "2960-stack.lab01",
+  "core01.lab01",
+  "fplab1-sw001",
+  "fw01.lab01",
+]
+
+# How the switches and routers are logged into over SSH. A switch or router
+# entry can override these keys one by one with its own ssh table (see
+# core01.lab01 below).
+[ssh]
+# Account on the switches. Required (or SWITCH_USERNAME).
+username = "netbox-sync"
+
+# agent: the keys loaded in the SSH agent (a key with a passphrase);
+# key: key_file below, a key without passphrase (cron);
+# password: SWITCH_PASSWORD or SWITCH_<NAME>_PASSWORD.
+# Required (or SWITCH_SSH_AUTH).
+auth = "agent"
+
+# The private key. Required when auth is key (or SWITCH_KEY_FILE).
+# key_file = "~/.ssh/netbox-sync"
+
+# Algorithms not to offer, by kind: pubkeys, kex, keys, ciphers, macs. An old
+# NX-OS 7.0(3) sends no server-sig-algs and refuses rsa-sha2-*: an RSA key
+# then has to sign with ssh-rsa. A name the client does not know is refused,
+# and pubkeys cannot disable all three RSA signatures (rsa-sha2-512,
+# rsa-sha2-256, ssh-rsa). Default: every algorithm the client knows is offered.
+# disabled_algorithms = { pubkeys = ["rsa-sha2-512", "rsa-sha2-256"] }
+
+# --- Sources -----------------------------------------------------------------
+# Every source is a [[sources]] entry with three keys in common:
+#   name   unique among all the sources, whatever their kind; names its
+#          variables, and for a network source its NetBox device. Required.
+#   kind   hypervisor, bmc, switch, router or firewall. Required.
+#   type   how it is read; the types of each kind are below. Required.
+# and a fourth one when the file lists the hosts that run the tool (runners):
+#   runner the host of that list that launches the source. Required with
+#          runners, refused without.
+
+# --- Hypervisors (kind = "hypervisor"), read through their API ---------------
+# The source owns what it reports: the hosts, the virtual machines, their
+# interfaces, disks and addresses, and the clusters, tagged with its name in
+# lower case without what a slug cannot hold (pve01.lab01 -> source-pve01lab01).
+
+# A Proxmox VE cluster (type = "proxmox"), through the API of one of its nodes.
+# Its account is PVE01_LAB01_TOKEN, or PVE01_LAB01_USERNAME and _PASSWORD.
+[[sources]]
+name = "pve01.lab01"
+kind = "hypervisor"
+type = "proxmox"
+
+# Host name or address of the API. Required.
+host = "192.0.2.10"
+
+# Port of the API. Default: 8006.
+port = 8006
+
+# false accepts any certificate. Default: true.
+validate_certs = true
+
+# Certificate authorities trusted on top of the system ones (PEM).
+# Default: the system ones only.
+# ca_file = "ca/pve-ca.pem"
+
+# NetBox site of the cluster, of its hosts and of their guests. Required.
+site = "lab01"
+
+# NetBox tenant of the cluster, of its hosts, of their guests and of their
+# addresses. Default: the tenants are kept as NetBox has them.
+tenant = "infrastructure"
+
+# NetBox role of the hosts. Default: Server.
+host_role = "Hypervisor"
+
+# NetBox role of the virtual machines (containers always get Container).
+# Default: VM.
+vm_role = "Server"
+
+# Domain appended to the host names Proxmox reports without one (pve01 ->
+# pve01.example.net). Default: the names are kept as reported.
+domain = "example.net"
+
+# Leave the templates out: they are not machines to document. Default: true.
+ignore_templates = true
+
+# Addresses of these networks are left out of NetBox; wins over
+# permitted_subnets. Default: none left out.
+ignored_subnets = ["192.0.2.128/25", "2001:db8:ffff::/48"]
+
+# Only the addresses of these networks are kept. Default: every network.
+permitted_subnets = ["192.0.2.0/24", "2001:db8::/32"]
+
+# Interfaces whose name matches this regular expression are left out, with
+# their addresses. Default: none left out.
+interface_filter = "^(lo|docker|veth|fwbr|fwpr|fwln|tap)"
+
+# Fill the DNS name of each address with its reverse lookup (PTR record). Only
+# an answer writes: an address without record, or whose lookup fails, keeps
+# the name NetBox has. Default: false.
+# dns_name_lookup = true
+
+# Resolvers asked for those lookups, by address, port 53 unless one is written
+# ("192.0.2.53:5353"); needs dns_name_lookup. Default: the system resolvers.
+# dns_servers = ["192.0.2.53", "2001:db8::53"]
+
+# Create the NetBox device of a host that has none. Default: true.
+create_devices = true
+
+# Delete what NetBox holds from this source and the source no longer reports.
+# Default: true.
+prune = true
+
+# Ask lldpd on each node, over SSH, which switch port each physical card
+# hears: a run that reads switches too then cables them after it (see the
+# README, "Cables a host hears"). The one command run is
+# `lldpcli -f json show neighbors`, without a terminal; lldpd must run on the
+# nodes, with -c when a switch announces CDP only. Needs the ssh block below.
+# Default: the nodes are never logged into.
+# neighbors = "lldpd"
+
+# The account the nodes are logged into with: the keys of the [ssh] block of
+# the switches, the same known hosts file. The account must be able to read
+# the socket of lldpd: root, or a member of the group _lldpd. With
+# auth = "password", the password is PVE01_LAB01_SSH_PASSWORD. Required with
+# neighbors, refused without it.
+# [sources.ssh]
+# username = "lldp"
+# auth = "key"
+# key_file = "~/.ssh/lldp"
+#
+# A node is reached by its name with the domain above (pve01.example.net);
+# give its address here when the name does not lead to it. Default: none.
+# [sources.ssh.hosts]
+# pve02 = "192.0.2.12"
+
+# A vCenter (type = "vmware"), read through its SOAP API (the inventory) and
+# its REST API (the vSphere tags). Its account is VCENTER01_LAB01_USERNAME and
+# _PASSWORD: a vCenter takes no API token. The keys are those of a Proxmox
+# entry, but for domain, which is refused (vCenter gives the full name of its
+# hosts), and neighbors and ssh, which are refused too (a run that reads
+# switches asks vCenter what the cards of its hosts hear). Without a key: the
+# vSphere tags of a machine, of its cluster and of its datacenter become its
+# NetBox tags; a primary address is only set when NetBox has none; memory and
+# disk sizes are written in powers of ten.
+[[sources]]
+name = "vcenter01.lab01"
+kind = "hypervisor"
+type = "vmware"
+
+# Host name or address of the API. Required.
+host = "vcenter01.example.net"
+
+# Port of the API. Default: 443.
+port = 443
+
+# false accepts any certificate: a vCenter often presents a self-signed one,
+# rather trust its authority with ca_file. Default: true.
+validate_certs = false
+
+# Certificate authorities trusted on top of the system ones (PEM).
+# Default: the system ones only.
+# ca_file = "ca/vcenter-ca.pem"
+
+# NetBox site of the clusters, of their hosts and machines, and of the VLANs
+# created from the port groups. Required.
+site = "lab01"
+
+# NetBox tenant of the clusters, hosts, machines and of their addresses.
+# Default: the tenants are kept as NetBox has them.
+tenant = "infrastructure"
+
+# NetBox role of the hosts. Default: Server.
+host_role = "Hypervisor ESX"
+
+# NetBox role of the virtual machines. Default: the role is kept as NetBox
+# has it.
+vm_role = "Virtual Machine ESX"
+
+# Leave the templates out: they are not machines to document. Default: true.
+ignore_templates = true
+
+# Addresses of these networks are left out of NetBox (link-local and loopback
+# addresses always are); wins over permitted_subnets. Default: none left out.
+ignored_subnets = ["10.255.0.0/16"]
+
+# Only the addresses of these networks are kept: with an IPv4 network alone,
+# no IPv6 address is. Default: every network.
+permitted_subnets = ["10.0.0.0/8"]
+
+# Interfaces whose name matches this regular expression are left out, on the
+# hosts (vmnic0, vmk0) and on the machines ("vNIC 1 (network)").
+# Default: none left out.
+interface_filter = "^vusb"
+
+# Fill the DNS name of each address with its reverse lookup (PTR record). Only
+# an answer writes: an address without record, or whose lookup fails, keeps
+# the name NetBox has. Default: false.
+dns_name_lookup = true
+
+# Resolvers asked for those lookups, by address, port 53 unless one is written
+# ("192.0.2.53:5353"); needs dns_name_lookup. Default: the system resolvers.
+# dns_servers = ["192.0.2.53", "2001:db8::53"]
+
+# Create the NetBox device of a host that has none. Default: true.
+create_devices = true
+
+# Delete what NetBox holds from this source and the source no longer reports
+# (netbox-sync only marked it as orphaned). Default: true.
+prune = true
+
+# --- BMCs (kind = "bmc"), read through Redfish -------------------------------
+# The BMC of a server (Dell iDRAC 7, 8 and 9, HPE iLO 4) knows what a
+# hypervisor may not: a bmc entry completes devices that exist in NetBox with
+# their manufacturer, their device type and their serial, and nothing else. It
+# never creates a device, never deletes anything, never touches an interface
+# or an address: create_devices and prune are refused in such an entry, as are
+# dns_name_lookup and dns_servers (a BMC reports no address). The devices are
+# named as NetBox names them: a host renamed in its hypervisor is to be renamed
+# here as well.
+#
+# A device is only written once NetBox shows it to be the server of its BMC:
+# one of the MAC addresses the BMC reports must be on an interface of the
+# device. A device that is not in NetBox, that has no MAC address there yet,
+# or whose addresses the BMC does not know, is left alone with a warning. A
+# BMC that cannot be read is an error of the run; the others are still read.
+#
+# A BMC is slow and logs every connection: run this kind once a day
+# (--kind bmc), not with the hypervisors (--kind hypervisor never reads it).
+# One entry per site, or per account: BMC_LAB01_USERNAME and
+# BMC_LAB01_PASSWORD are the account of every BMC of this entry.
+[[sources]]
+name = "bmc.lab01"
+kind = "bmc"
+# redfish is the only type of a bmc entry.
+type = "redfish"
+
+# Port of the Redfish service of every BMC of the entry. Default: 443.
+port = 443
+
+# false accepts any certificate, and sends the account to whatever answers:
+# rather pin the certificate of each BMC in tls_fingerprints. Default: true.
+validate_certs = false
+
+# Certificate authorities trusted on top of the system ones (PEM), for BMCs
+# whose certificate was signed. Default: the system ones only.
+# ca_file = "ca/example-ca.pem"
+
+# NetBox devices whose BMC is named after them: bmc_pattern gives the host
+# name or address of each one's BMC, {name} standing for the device name
+# (pve01.lab01 -> drac-pve01.lab01). devices and bmc_pattern go together; an
+# entry needs them, or bmcs below, or both.
+devices = ["pve01.lab01", "pve02.lab01", "pve03.lab01"]
+bmc_pattern = "drac-{name}"
+
+# NetBox device -> SHA-256 of the certificate its BMC presents, as
+# `openssl x509 -fingerprint -sha256` prints it: that certificate and no other
+# is accepted, whatever validate_certs and ca_file say. Every device named
+# must be one of the entry, once. Default: none pinned.
+# tls_fingerprints = { "pve01.lab01" = "AB:CD:…" }
+
+# NetBox device -> host name or IPv4 address of its BMC, for the devices whose
+# BMC does not follow the pattern. A device is listed once, here or in devices.
+# Default: none.
+[sources.bmcs]
+"esx01.lab01" = "ilo-esx01.example.net"
+"esx02.lab01" = "192.0.2.62"
+
+# --- Switches and routers (kind = "switch" or "router") ----------------------
+# The device exists in NetBox; the run completes it: interfaces, addresses,
+# VLANs, cables from LLDP and CDP. Read over SSH (type = "nxos" or "ios") with
+# the [ssh] settings, or from a configuration report (type = "nipper").
+
+[[sources]]
+name = "nexus01.lab01"
+kind = "switch"
+type = "nxos"
+
+# Address the switch is reached on over SSH, and its primary address in
+# NetBox. Required.
+host = "192.0.2.239"
+
+# How port descriptions name the neighbours, for the cables LLDP and CDP do not
+# give: a regular expression with the named groups host (required) and port
+# (optional). Default: cables from LLDP and CDP only.
+# neighbor_pattern = '(?i)\b(?P<host>lab1-(?:pve|esx)\d+)(?:[\s_-]+(?P<port>[a-z0-9]+))?'
+
+# Appended to the host a description names, to give the NetBox device name.
+# Default: nothing appended.
+# neighbor_suffix = ".prod"
+
+# A stack: its members are the NetBox devices of the virtual chassis named
+# here, matched by vc_position. Default: the single NetBox device named as the
+# source.
+[[sources]]
+name = "2960-stack.lab01"
+kind = "switch"
+type = "ios"
+host = "192.0.2.252"
+virtual_chassis = "2960-stack"
+
+[[sources]]
+name = "core01.lab01"
+kind = "router"
+type = "ios"
+host = "192.0.2.254"
+
+# The keys of [ssh], for this source only: the ones given override the common
+# ones, the others are kept. Default: the common [ssh] settings.
+[sources.ssh]
+username = "admin-core"
+
+# A stack nobody may log into (managed by a provider), read from its Nipper
+# configuration report: no connection, no ssh table, and no address read, so
+# host is not needed. Port descriptions are its only source of cables.
+[[sources]]
+name = "fplab1-sw001"
+kind = "switch"
+type = "nipper"
+
+# The report, an HTML file. Required.
+report = "reports/fplab1-sw001.html"
+
+# As for a stack read over SSH. Default: the single NetBox device named as
+# the source.
+virtual_chassis = "fplab1-sw001"
+
+# How port descriptions name the neighbours: named groups host (required) and
+# port (optional). Default: no cable.
+neighbor_pattern = '(?i)\b(?P<host>lab1-(?:pve|esx)\d+)(?:\.prod)?(?:[\s_-]+(?P<port>[a-z0-9]+))?'
+
+# Appended to the host a description names, to give the NetBox device name.
+# Default: nothing appended.
+neighbor_suffix = ".prod"
+
+# --- Firewalls (kind = "firewall"), read through their REST API --------------
+# A FortiGate (type = "fortios") or a cluster of them. The account is
+# FIREWALL_FW01_LAB01_USERNAME and _PASSWORD, never the variables of the
+# switches.
+[[sources]]
+name = "fw01.lab01"
+kind = "firewall"
+type = "fortios"
+
+# Address the API answers on. Required.
+host = "192.0.2.1"
+
+# Port of the API. Default: 443.
+# port = 9443
+
+# SHA-256 of the certificate the API presents, the only one accepted:
+#   openssl s_client -connect 192.0.2.1:443 </dev/null 2>/dev/null \
+#     | openssl x509 -noout -fingerprint -sha256
+# Required.
+tls_fingerprint = "3A:7F:0C:91:5E:B2:44:D8:6A:19:F3:20:8B:C7:E1:55:09:AD:62:FE:71:38:C4:9B:0D:E6:2A:83:F5:14:BC:67"
+
+# Interfaces left out of the sync, by their exact name: here a physical port
+# that differs from the VLAN interface DMZ by case only. Default: none.
+ignore_interfaces = ["dmz"]
+
+# Host name of each cluster member -> its NetBox device; one member must be
+# this entry. Every interface and address goes to this entry's device, the
+# other member only gets its serial. Default: a single firewall.
+[sources.ha_peers]
+FW-LAB-A = "fw01.lab01"
+FW-LAB-B = "fw02.lab01"
+
+# --- VLAN groups -------------------------------------------------------------
+
+# Sites that carry the same VLANs (one LAN stretched over two rooms) keep them
+# once, in a NetBox VLAN group, instead of once per site: NetBox refuses a
+# VLAN of a site on an interface of another site. Every source whose site
+# (hypervisors) or whose device (switches, routers, firewalls) is at one of
+# the sites then looks its VLANs up in the group, and creates the ones it
+# lacks there, at no site. One table per group; a site is in one group at
+# most. Default: none, every site keeps its own VLANs.
+#
+# The group must exist in NetBox: it is never created. When a site joins a
+# group, the VLANs of the site a hypervisor source created are deleted once
+# its interfaces are on the ones of the group; those made by hand are never
+# touched, and are told in a warning.
+#
+# [[vlan_groups]]
+# Name of the VLAN group in NetBox. Required.
+# name = "Lab"
+# Names of the NetBox sites whose VLANs it holds. Required.
+# sites = ["lab01", "lab02"]

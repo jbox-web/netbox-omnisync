@@ -1,0 +1,318 @@
+{
+  "lldp": {
+    "interface": [
+      {
+        "enp3s0f0": {
+          "via": "LLDP",
+          "rid": "5",
+          "age": "65 days, 20:01:23",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:14"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/10"
+            },
+            "descr": "pve03.lab.example/enp3s0f0/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "eno1": {
+          "via": "LLDP",
+          "rid": "1",
+          "age": "65 days, 20:01:44",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:15"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/9"
+            },
+            "descr": "pve03.lab.example/eno1/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "enp3s0f1": {
+          "via": "LLDP",
+          "rid": "6",
+          "age": "65 days, 20:01:22",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:16"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/10"
+            },
+            "descr": "pve03.lab.example/enp3s0f1/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "eno2": {
+          "via": "LLDP",
+          "rid": "2",
+          "age": "65 days, 20:01:43",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:17"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/9"
+            },
+            "descr": "pve03.lab.example/eno2/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,03,00,00,00,02,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "eno3": {
+          "via": "LLDP",
+          "rid": "4",
+          "age": "65 days, 20:01:41",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:18"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/8"
+            },
+            "descr": "pve03.lab.example/eno3/1G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "eno4": {
+          "via": "LLDP",
+          "rid": "3",
+          "age": "65 days, 20:01:41",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:19"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/8"
+            },
+            "descr": "pve03.lab.example/eno4/1G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      }
+    ]
+  }
+}

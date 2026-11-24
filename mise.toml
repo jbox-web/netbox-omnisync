@@ -1,0 +1,88 @@
+[tools]
+rust = "1.95.0"
+# Third-party licence notices of a release (dev:licenses).
+"github:EmbarkStudios/cargo-about" = "0.9.3"
+# Advisories, bans, licences and sources (dev:lint, and `cargo deny check`).
+"github:EmbarkStudios/cargo-deny" = "0.22.0"
+# Workflows, scripts and spelling (dev:lint).
+actionlint = "1.7.12"
+shellcheck = "0.11.0"
+zizmor = "1.32.0"
+typos = "1.52.2"
+# Test coverage (dev:coverage).
+"github:taiki-e/cargo-llvm-cov" = "0.9.1"
+
+[tasks."dev:lint"]
+description = "Format, clippy, doc links, licences, spelling, scripts and workflows"
+run = [
+  "cargo fmt --all --check",
+  "cargo clippy --workspace --all-targets --locked -- -D warnings",
+  # A link of the documentation that no longer resolves, or resolves to two
+  # things: private items included, where most of the documentation is.
+  "RUSTDOCFLAGS='-D warnings' cargo doc --workspace --no-deps --document-private-items --locked",
+  "cargo deny check licenses",
+  "typos",
+  "shellcheck scripts/*.sh",
+  "actionlint",
+  "zizmor --offline .github/workflows",
+]
+
+[tasks."dev:test"]
+description = "Unit tests"
+run = "cargo test --workspace --locked"
+
+[tasks."dev:coverage"]
+description = "Unit tests with their coverage: a summary, and the report in target/llvm-cov/html/index.html"
+# The whole workspace is compiled again, instrumented, in target/llvm-cov-target.
+# The report is styled by scripts/llvm-cov.css, copied over the style.css
+# llvm-cov writes: cargo llvm-cov has no option for a stylesheet.
+run = [
+  "cargo llvm-cov --workspace --locked --html",
+  "cp scripts/llvm-cov.css target/llvm-cov/html/style.css",
+  "cargo llvm-cov report --summary-only",
+  # The figure above counts the unit tests, which run their own lines: this
+  # one is the production code alone, with the files that are not at 100 %.
+  "cargo llvm-cov report --lcov --output-path target/llvm-cov/lcov.info",
+  "python3 scripts/coverage-production.py target/llvm-cov/lcov.info",
+  # The report opens in the browser, except in CI, which uploads it instead.
+  'if [ -z "${CI:-}" ]; then open target/llvm-cov/html/index.html; fi',
+]
+
+[tasks."dev:release-build"]
+description = "Build one release binary and its checksum into dist/ (linux-amd64, linux-arm64, darwin-universal)"
+usage = 'arg "<platform>" help="linux-amd64, linux-arm64 or darwin-universal"'
+run = "scripts/release-build.sh {{arg(name='platform')}}"
+
+[tasks."dev:licenses"]
+description = "Third-party licence notices of a release, into dist/THIRD-PARTY-NOTICES.txt"
+run = [
+  "mkdir -p dist",
+  "cargo about generate --locked --fail -c licenses/about.toml licenses/about.hbs --output-file dist/THIRD-PARTY-NOTICES.txt",
+]
+
+[tasks."dev:test-integration"]
+description = "Integration tests against a disposable NetBox in Docker, NETBOX_VERSION (v4.5.10 by default; several minutes)"
+# On a CI runner the build and the stack take 4 to 6 minutes, the tests 4 to
+# 7 (NetBox 4.5 the slowest, 13 minutes in all; CONTRIBUTING.md has the figures).
+timeout = "30m"
+run = """
+set -eu
+compose="docker compose -f crates/cli/tests/integration/docker-compose.yml"
+tests=""
+# The stack is destroyed whatever ends the task: success, failure, Ctrl-C or
+# timeout. The tests run in the background so that a signal is handled at
+# once, not when they end.
+cleanup() {
+  trap - EXIT INT TERM
+  if [ -n "$tests" ]; then kill "$tests" 2>/dev/null || true; fi
+  $compose down -v
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
+$compose up -d --wait --wait-timeout 600
+# One at a time: the tests share the NetBox, and each starts from an empty one.
+cargo test -p omnisync-cli --test integration --locked -- --ignored --test-threads=1 &
+tests=$!
+wait "$tests"
+"""

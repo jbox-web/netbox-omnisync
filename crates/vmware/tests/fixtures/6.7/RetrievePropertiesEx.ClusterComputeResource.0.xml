@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soapenv:Body>
+<RetrievePropertiesExResponse xmlns="urn:vim25"><returnval><objects><obj type="ClusterComputeResource">domain-c7</obj><propSet><name>host</name><val xsi:type="ArrayOfManagedObjectReference"><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-353</ManagedObjectReference><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-33564</ManagedObjectReference><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-53898</ManagedObjectReference><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-10</ManagedObjectReference><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-48488</ManagedObjectReference><ManagedObjectReference type="HostSystem" xsi:type="ManagedObjectReference">host-96885</ManagedObjectReference></val></propSet><propSet><name>name</name><val xsi:type="xsd:string">cluster2</val></propSet><propSet><name>parent</name><val type="Folder" xsi:type="ManagedObjectReference">group-h4</val></propSet></objects></returnval></RetrievePropertiesExResponse>
+</soapenv:Body>
+</soapenv:Envelope>

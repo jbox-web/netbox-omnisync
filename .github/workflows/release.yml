@@ -1,0 +1,124 @@
+name: Release
+
+# A pushed tag vX.Y.Z becomes a GitHub release: the tag is checked, the tests
+# run on the tagged sources, the three binaries are built with their checksums
+# and the third-party notices (build.yml, the workflow ci.yml runs on every
+# push), then one job publishes them.
+#
+# The tag is created by the maintainer, annotated and signed, then pushed:
+#   git tag -s vX.Y.Z -m "Release X.Y.Z" && git tag -v vX.Y.Z && git push origin vX.Y.Z
+# Nothing here creates a tag: the release is attached to the one that was
+# pushed, and refused when that tag is lightweight or unsigned.
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+
+# Every job starts with no permission; only the publishing job may write.
+permissions: {}
+
+# A tag pushed again while its release is still running must wait: two runs
+# would upload the assets of the same release at the same time.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+# Actions are pinned by commit, so a moved tag cannot run other code.
+jobs:
+  # vX.Y.Z, the version of Cargo.toml, annotated, signed by a key of
+  # .github/release-signers, on the commit checked out here: read through the
+  # API, see scripts/release-check-tag.sh.
+  tag:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The ref is passed through the environment, never written into a script.
+      - name: Check the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+        run: scripts/release-check-tag.sh "$REF_NAME"
+
+  # A tag can be put on any commit, including one whose CI is red: nothing is
+  # built, let alone published, before the suite passes on the tagged sources.
+  test:
+    name: test (${{ matrix.os }})
+    needs: tag
+    strategy:
+      matrix:
+        os: [ubuntu-24.04, macos-26]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # The toolchain comes from rust-toolchain.toml.
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo test --workspace --locked
+
+  build:
+    needs: test
+    permissions:
+      contents: read
+    uses: ./.github/workflows/build.yml
+
+  # One job publishes, once every platform has built: a platform that fails
+  # fails the release instead of leaving it short of a binary. The release is
+  # a draft until every file is uploaded; running the job again resumes it.
+  release:
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      # Create the release and upload its assets.
+      contents: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: dist-*
+          path: dist/
+          merge-multiple: true
+
+      # Exactly the files of a release, and each binary matching its checksum
+      # after the trip through the artifacts.
+      - name: Check the files
+        working-directory: dist
+        run: |
+          expected="$(printf '%s\n' \
+            THIRD-PARTY-NOTICES.txt \
+            netbox-omnisync-darwin-universal netbox-omnisync-darwin-universal.sha256 \
+            netbox-omnisync-linux-amd64 netbox-omnisync-linux-amd64.sha256 \
+            netbox-omnisync-linux-arm64 netbox-omnisync-linux-arm64.sha256)"
+          found="$(LC_ALL=C ls -1)"
+          if [ "$found" != "$expected" ]; then
+            echo "unexpected files in dist/:" >&2
+            echo "$found" >&2
+            exit 1
+          fi
+          sha256sum --check --strict ./*.sha256
+
+      # --verify-tag: the release is attached to the pushed tag, or not made.
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          if gh release view "$REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$REF_NAME" dist/* --clobber
+          else
+            gh release create "$REF_NAME" dist/* --verify-tag --draft --title "$REF_NAME" --generate-notes
+          fi
+          gh release edit "$REF_NAME" --draft=false

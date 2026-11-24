@@ -1,0 +1,20 @@
+mgmt0 is up
+admin state is up,
+  Hardware: GigabitEthernet, address: 02d6.c4df.16c5 (bia 02d6.c4df.16c5)
+  Internet Address is 192.168.1.1/24
+  MTU 1500 bytes, BW 1000000 Kbit, DLY 10 usec
+  reliability 255/255, txload 1/255, rxload 1/255
+  Encapsulation ARPA, medium is broadcast
+  full-duplex, 1000 Mb/s
+  Auto-Negotiation is turned on
+  Auto-mdix is turned off
+  EtherType is 0x0000 
+  1 minute input rate 680 bits/sec, 0 packets/sec
+  1 minute output rate 720 bits/sec, 1 packets/sec
+  Rx
+    78023471 input packets 78023455 unicast packets 0 multicast packets
+    16 broadcast packets 6396417522 bytes
+  Tx
+    79332444 output packets 78031813 unicast packets 1300601 multicast packets
+    30 broadcast packets 6719243047 bytes
+

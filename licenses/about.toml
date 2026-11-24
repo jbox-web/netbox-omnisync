@@ -1,0 +1,26 @@
+# cargo about generate (mise run dev:licenses): the notices of the third-party
+# code a release binary carries. Same licences as deny.toml allows, which is
+# what `cargo deny check licenses` enforces on every push.
+accepted = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unlicense",
+    "CDLA-Permissive-2.0",
+    "MPL-2.0",
+]
+# The targets a release is built for (scripts/release-build.sh): the two
+# Linux ones, and the two slices of the universal macOS binary.
+targets = [
+    "x86_64-unknown-linux-musl",
+    "aarch64-unknown-linux-musl",
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+]
+# Only what ends up in the binary.
+ignore-dev-dependencies = true
+ignore-build-dependencies = true

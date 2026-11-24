@@ -1,0 +1,29 @@
+# typos (mise run dev:lint): spelling of the code, the comments and the docs.
+[files]
+# Answers recorded from real devices and APIs: their words are theirs.
+extend-exclude = ["crates/*/tests/fixtures/"]
+
+[default]
+extend-ignore-re = [
+  # Base64: certificates and encoded credentials of the tests.
+  "[A-Za-z0-9+/=]{40,}",
+  # A certificate fingerprint, as openssl prints it.
+  "(?:[0-9A-Fa-f]{2}:){3,}[0-9A-Fa-f]{2}",
+  # A colour of NetBox, six hexadecimal digits.
+  "\\b[0-9a-f]{6}\\b",
+  # What a test feeds a decoder: bytes, not words.
+  "b\"[a-z]{2,3}(\\\\x[0-9a-f]{2})?",
+  # HTTP verbs made past participles.
+  "PATCHed",
+]
+
+[default.extend-words]
+# Hewlett Packard Enterprise.
+HPE = "HPE"
+hpe = "hpe"
+# Misspelt on purpose: the filter, the key and the field the tests expect to be refused.
+nmae = "nmae"
+priorty = "priorty"
+descriptoin = "descriptoin"
+# "café" cut before its accent, by the decoders under test.
+caf = "caf"

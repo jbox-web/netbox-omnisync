@@ -1,0 +1,1 @@
+{"http_method":"GET","results":{"model_name":"FortiGate","model_number":"101F","model":"FG101F","hostname":"LABLU-FWL01","log_disk_status":"available"},"vdom":"root","path":"system","name":"status","status":"success","serial":"FG101FTK22000001","version":"v7.4.13","build":2933}

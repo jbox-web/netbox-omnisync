@@ -1,0 +1,4 @@
+# The keys allowed to sign a release tag (scripts/release-check-tag.sh), as
+# ssh-keygen -Y verify reads them: the principal `release`, then the public key.
+# A new signing key is added here, by a reviewed commit, before it tags.
+release ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDPEkGS7oVZLd//LROBd/kQ5PAxZ4kkDhOgjTBZF0rmeFVLNZZ/iuXbd8V9mxjHYgWJ9CQhsTkp0kyZxI3QuS/bCITTcSen2Bk2jgPY4C1pr7UBYalQMf65maVEXBOnOHaSJiOFqlX1EBkS2qWrsaxcPISqfYGEwZthApeOm1WKAMr67QICg/BtZvcuvD7/YG2wiuijs+uM1QRyZOwakTwweKx+X4hMaN+j+YvAj+AwufX50rJG3mD8UP52F1YWg/MgXK7QcfD7wd9F2I/SzOnehBwCegq2eoGkJkVJELAt/gkdxWKnzUSxAXOjvU+cetoX5eDnyiPi0Qift3LOnaNRKLh6A/h2FELhXvvBjza3op95xXaeaKR/SuPfLogaQ3Jo9ZcmRXcKEpwl2DgH5FidZJc8wFiUiLP95dvF9TY4cGvGU2YJeYCsKOKjp6ez1B/s+sB8aTY+zbFyMQlCB3WHrgiPatZvvVjcyxaraAyMifeW4vEcTYdUKIaAMlWIAnP00+C2fr1X27EqmwRGHidOfI/SvDnQYiba/mRYx6kEMrAE9XGXPnLtrGHRom8i8Jr7njSGeUNotHHFN/t8j8QxDbYBw7xTmI2PvkDMSIYyIg+pxUuXUtaoNy7GqSqgyRUG/UpePyKs1MoJ0qVSWiPY1Mt7yQuMRQAf5hcAB+tHOw==

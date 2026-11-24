@@ -1,0 +1,7 @@
+Switch/Stack Mac Address : 02b3.dd4f.1634
+                                           H/W   Current
+Switch#  Role   Mac Address     Priority Version  State 
+----------------------------------------------------------
+*1       Master 02b3.dd4f.1634     1      4       Ready               
+
+

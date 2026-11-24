@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soapenv:Envelope xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+ xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+ xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<soapenv:Body>
+<RetrievePropertiesExResponse xmlns="urn:vim25"><returnval><objects><obj type="HostSystem">host-353</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-353</val></propSet></objects><objects><obj type="HostSystem">host-33564</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-33564</val></propSet></objects><objects><obj type="HostSystem">host-53898</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-53898</val></propSet></objects><objects><obj type="HostSystem">host-10</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-10</val></propSet></objects><objects><obj type="HostSystem">host-48488</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-48488</val></propSet></objects><objects><obj type="HostSystem">host-96885</obj><propSet><name>configManager.networkSystem</name><val type="HostNetworkSystem" xsi:type="ManagedObjectReference">networkSystem-96885</val></propSet></objects></returnval></RetrievePropertiesExResponse>
+</soapenv:Body>
+</soapenv:Envelope>

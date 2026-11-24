@@ -1,0 +1,618 @@
+{
+  "lldp": {
+    "interface": [
+      {
+        "eno1": {
+          "via": "LLDP",
+          "rid": "1",
+          "age": "65 days, 18:38:59",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:07"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/41"
+            },
+            "descr": "pve02.lab.example/eno1/1G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "eno2": {
+          "via": "LLDP",
+          "rid": "2",
+          "age": "65 days, 18:38:58",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:08"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/41"
+            },
+            "descr": "pve02.lab.example/eno2/1G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "enp5s0": {
+          "via": "LLDP",
+          "rid": "6",
+          "age": "65 days, 18:38:38",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:09"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/43"
+            },
+            "descr": "pve02.lab.example/enp5s0/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "enp5s0d1": {
+          "via": "LLDP",
+          "rid": "4",
+          "age": "65 days, 18:38:38",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0a"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/43"
+            },
+            "descr": "pve02.lab.example/enp5s0d1/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "enp66s0": {
+          "via": "LLDP",
+          "rid": "3",
+          "age": "65 days, 18:38:38",
+          "chassis": {
+            "nexus03.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0b"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.1",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/44"
+            },
+            "descr": "pve02.lab.example/enp66s0/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "enp66s0d1": {
+          "via": "LLDP",
+          "rid": "5",
+          "age": "65 days, 18:38:38",
+          "chassis": {
+            "nexus04.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0c"
+              },
+              "descr": "Cisco Nexus Operating System (NX-OS) Software 7.0(3)I4(7)\nTAC support: http://www.cisco.com/tac\nCopyright (c) 2002-2017, Cisco Systems, Inc. All rights reserved.",
+              "mgmt-ip": "198.19.1.2",
+              "mgmt-iface": "83886080",
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": true
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "Ethernet1/44"
+            },
+            "descr": "pve02.lab.example/enp66s0d1/10G",
+            "ttl": "120"
+          },
+          "unknown-tlvs": {
+            "unknown-tlv": [
+              {
+                "oui": "00,1B,21",
+                "subtype": "2",
+                "len": "39",
+                "value": "02,0A,00,00,00,00,00,01,00,00,00,00,06,06,00,00,80,00,00,08,04,11,00,00,80,00,00,00,00,00,64,00,00,00,00,00,00,00,01"
+              },
+              {
+                "oui": "00,01,42",
+                "subtype": "1",
+                "len": "1",
+                "value": "01"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "fwpr141p0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "59 days, 19:27:03",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:0e"
+            },
+            "descr": "fwln141i0",
+            "ttl": "120"
+          }
+        }
+      },
+      {
+        "fwln141i0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "59 days, 19:27:03",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:0f"
+            },
+            "descr": "fwpr141p0",
+            "ttl": "120"
+          }
+        }
+      },
+      {
+        "fwpr151p0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "59 days, 19:25:53",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:10"
+            },
+            "descr": "fwln151i0",
+            "ttl": "120"
+          }
+        }
+      },
+      {
+        "fwln151i0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "59 days, 19:25:53",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:11"
+            },
+            "descr": "fwpr151p0",
+            "ttl": "120"
+          }
+        }
+      },
+      {
+        "fwpr153p0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "3 days, 00:34:15",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:12"
+            },
+            "descr": "fwln153i0",
+            "ttl": "120"
+          }
+        }
+      },
+      {
+        "fwln153i0": {
+          "via": "LLDP",
+          "rid": "8",
+          "age": "3 days, 00:34:15",
+          "chassis": {
+            "pve02.lab.example": {
+              "id": {
+                "type": "mac",
+                "value": "02:00:00:00:00:0d"
+              },
+              "descr": "Debian GNU/Linux 12 (bookworm) Linux 6.8.12-43-pve #1 SMP PREEMPT_DYNAMIC PMX 6.8.12-43 (2026-08-18T13:29Z) x86_64",
+              "mgmt-ip": [
+                "10.3.27.75",
+                "fe80::202:c9ff:fe53:bac2"
+              ],
+              "mgmt-iface": [
+                "11",
+                "11"
+              ],
+              "capability": [
+                {
+                  "type": "Bridge",
+                  "enabled": true
+                },
+                {
+                  "type": "Router",
+                  "enabled": false
+                },
+                {
+                  "type": "Wlan",
+                  "enabled": false
+                },
+                {
+                  "type": "Station",
+                  "enabled": false
+                }
+              ]
+            }
+          },
+          "port": {
+            "id": {
+              "type": "mac",
+              "value": "02:00:00:00:00:13"
+            },
+            "descr": "fwpr153p0",
+            "ttl": "120"
+          }
+        }
+      }
+    ]
+  }
+}

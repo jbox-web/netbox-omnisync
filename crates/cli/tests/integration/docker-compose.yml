@@ -1,0 +1,46 @@
+# A disposable NetBox for the integration tests (`mise run dev:test-integration`).
+# Every value below is a throwaway of this stack, which never leaves the loopback.
+name: netbox-omnisync-integration
+
+services:
+  netbox:
+    # The NetBox under test: NETBOX_VERSION (the default is the oldest supported).
+    image: docker.io/netboxcommunity/netbox:${NETBOX_VERSION:-v4.5.10}
+    depends_on:
+      - postgres
+      - redis
+      - redis-cache
+    environment:
+      DB_HOST: postgres
+      DB_NAME: netbox
+      DB_USER: netbox
+      DB_PASSWORD: netbox-integration
+      REDIS_HOST: redis
+      REDIS_CACHE_HOST: redis-cache
+      SECRET_KEY: integration-tests-only-0123456789abcdefghijklmnopqrstuvwxyz0123
+      # The key v2 API tokens are hashed with: without it NetBox refuses to
+      # provision a token.
+      API_TOKEN_PEPPER_1: integration-tests-only-pepper-0123456789abcdefghijklmnopqrstuvwxyz
+      SKIP_SUPERUSER: "true"
+      DJANGO_SUPERUSER_USERNAME: admin
+      DJANGO_SUPERUSER_PASSWORD: admin-integration
+      DJANGO_SUPERUSER_EMAIL: admin@example.com
+    ports:
+      - "127.0.0.1:8765:8080"
+    healthcheck:
+      # The login page answers once NetBox serves requests; curl is in every image.
+      test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/login/"]
+      start_period: 180s
+      interval: 10s
+      timeout: 5s
+      retries: 30
+  postgres:
+    image: docker.io/postgres:17-alpine
+    environment:
+      POSTGRES_DB: netbox
+      POSTGRES_USER: netbox
+      POSTGRES_PASSWORD: netbox-integration
+  redis:
+    image: docker.io/valkey/valkey:8-alpine
+  redis-cache:
+    image: docker.io/valkey/valkey:8-alpine

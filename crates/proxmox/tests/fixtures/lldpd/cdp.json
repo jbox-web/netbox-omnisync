@@ -1,0 +1,64 @@
+{
+  "lldp": {
+    "interface": [
+      {
+        "eth0": {
+          "via": "CDPv2",
+          "rid": "1",
+          "age": "0 day, 00:00:42",
+          "chassis": {
+            "PROVIDER-SW001.provider.example": {
+              "id": {
+                "type": "local",
+                "value": "PROVIDER-SW001.provider.example"
+              },
+              "descr": "cisco WS-C3650-12X48UR running on\nCisco IOS Software [Denali], Catalyst L3 Switch Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.3.10, RELEASE SOFTWARE (fc1)\nTechnical Support: http://www.cisco.com/techsupport\nCopyright (c) 1986-2020 by Cisco Systems, Inc.\nCompiled Mon 27-Jan-20 09:14 by mcpre",
+              "mgmt-ip": "198.19.12.140",
+              "capability": {
+                "type": "Bridge",
+                "enabled": true
+              }
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "GigabitEthernet1/0/24"
+            },
+            "descr": "GigabitEthernet1/0/24",
+            "ttl": "180"
+          }
+        }
+      },
+      {
+        "eth1": {
+          "via": "CDPv2",
+          "rid": "1",
+          "age": "0 day, 00:00:42",
+          "chassis": {
+            "PROVIDER-SW001.provider.example": {
+              "id": {
+                "type": "local",
+                "value": "PROVIDER-SW001.provider.example"
+              },
+              "descr": "cisco WS-C3650-12X48UR running on\nCisco IOS Software [Denali], Catalyst L3 Switch Software (CAT3K_CAA-UNIVERSALK9-M), Version 16.3.10, RELEASE SOFTWARE (fc1)\nTechnical Support: http://www.cisco.com/techsupport\nCopyright (c) 1986-2020 by Cisco Systems, Inc.\nCompiled Mon 27-Jan-20 09:14 by mcpre",
+              "mgmt-ip": "198.19.12.140",
+              "capability": {
+                "type": "Bridge",
+                "enabled": true
+              }
+            }
+          },
+          "port": {
+            "id": {
+              "type": "ifname",
+              "value": "GigabitEthernet2/0/24"
+            },
+            "descr": "GigabitEthernet2/0/24",
+            "ttl": "180"
+          }
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+
+------------------------------------------------
+Local Intf: Te1/0/2
+Chassis id: 02a1.b2c3.d4e5
+Port id: Ethernet1/36
+Port Description: 2960-admin.lab01/Te1/0/2
+System Name: nexus01.lab01
+
+System Description: 
+Cisco Nexus Operating System (NX-OS) Software 7.0(3)I2(4)
+TAC support: http://www.cisco.com/tac
+Copyright (c) 2002-2016, Cisco Systems, Inc. All rights reserved.
+
+Time remaining: 103 seconds
+System Capabilities: B,R
+Enabled Capabilities: B,R
+Management Addresses:
+    IP: 192.168.1.1
+    Other: FF A1 B2 FF D4 FF 00
+Auto Negotiation - not supported
+Physical media capabilities - not advertised
+Media Attachment Unit type - not advertised
+Vlan ID: 1
+
+------------------------------------------------
+Local Intf: Te1/0/1
+Chassis id: 02a1.b2c3.d4e6
+Port id: Ethernet1/36
+Port Description: 2960-admin.lab01/Te1/0/1
+System Name: nexus02.lab01
+
+System Description: 
+Cisco Nexus Operating System (NX-OS) Software 7.0(3)I2(4)
+TAC support: http://www.cisco.com/tac
+Copyright (c) 2002-2016, Cisco Systems, Inc. All rights reserved.
+
+Time remaining: 91 seconds
+System Capabilities: B,R
+Enabled Capabilities: B,R
+Management Addresses:
+    IP: 192.168.1.2
+    Other: FF A1 B2 C3 FF E6 00
+Auto Negotiation - not supported
+Physical media capabilities - not advertised
+Media Attachment Unit type - not advertised
+Vlan ID: 1
+
+
+Total entries displayed: 2

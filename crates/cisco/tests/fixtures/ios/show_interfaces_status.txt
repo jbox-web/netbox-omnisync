@@ -1,0 +1,31 @@
+
+
+Port      Name               Status       Vlan       Duplex  Speed Type 
+Gi1/0/1                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/2                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/3                      connected    2800       a-full  a-100 10/100/1000BaseTX
+Gi1/0/4                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/5                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/6                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/7                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/8                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/9                      notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/10                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/11                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/12                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/13                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/14                     connected    2800       a-full a-1000 10/100/1000BaseTX
+Gi1/0/15  IDRAC ESX06 DELL R connected    2800       a-full  a-100 10/100/1000BaseTX
+Gi1/0/16                     connected    2800       a-full  a-100 10/100/1000BaseTX
+Gi1/0/17                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/18                     connected    2800       a-full a-1000 10/100/1000BaseTX
+Gi1/0/19                     connected    2800       a-full a-1000 10/100/1000BaseTX
+Gi1/0/20                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/21                     connected    2800       a-full  a-100 10/100/1000BaseTX
+Gi1/0/22  PVE 1 Identity DEL notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/23                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Gi1/0/24                     notconnect   2800         auto   auto 10/100/1000BaseTX
+Te1/0/1   3750-1/0/24        connected    trunk        full    10G SFP-10GBase-SR
+Te1/0/2   3750-1/0/24        connected    trunk        full    10G SFP-10GBase-SR
+Po1       to3750             err-disabled 1            auto   auto 
+Fa0                          disabled     routed       auto   auto 10/100BaseTX

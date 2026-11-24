@@ -1,0 +1,50 @@
+User Access Verification
+Cisco Nexus Operating System (NX-OS) Software
+TAC support: http://www.cisco.com/tac
+Copyright (C) 2002-2016, Cisco and/or its affiliates.
+All rights reserved.
+The copyrights to certain works contained in this software are
+owned by other third parties and used and distributed under their own
+licenses, such as open source.  This software is provided "as is," and unless
+otherwise stated, there is no warranty, express or implied, including but not
+limited to warranties of merchantability and fitness for a particular purpose.
+Certain components of this software are licensed under
+the GNU General Public License (GPL) version 2.0 or 
+GNU General Public License (GPL) version 3.0  or the GNU
+Lesser General Public License (LGPL) Version 2.1 or 
+Lesser General Public License (LGPL) Version 2.0. 
+A copy of each such license is available at
+http://www.opensource.org/licenses/gpl-2.0.php and
+http://opensource.org/licenses/gpl-3.0.html and
+http://www.opensource.org/licenses/lgpl-2.1.php and
+http://www.gnu.org/licenses/old-licenses/library.txt.
+
+Software
+  BIOS: version 4.5.0
+  NXOS: version 7.0(3)I2(4)
+  BIOS compile time:  11/09/2017
+  NXOS image file is: bootflash:///nxos.7.0.3.I2.4.bin
+  NXOS compile time:  9/13/2016 21:00:00 [09/14/2016 04:20:52]
+
+
+Hardware
+  cisco Nexus3000 C3064PQ Chassis 
+  Intel(R) Celeron(R) CPU        P4505  @ 1.87GHz with 3903828 kB of memory.
+  Processor Board ID FOC96781U06
+
+  Device name: nexus01.lab01
+  bootflash:    1874944 kB
+  usb1:               0 kB (expansion flash)
+
+Kernel uptime is 20 day(s), 4 hour(s), 49 minute(s), 41 second(s)
+
+Last reset at 438032 usecs after  Thu Sep 10 07:46:28 2026
+
+  Reason: Reset Requested due to Fatal Module Error
+  System version: 7.0(3)I2(4)
+  Service: System manager
+
+plugin
+  Core Plugin, Ethernet Plugin
+
+Active Package(s):

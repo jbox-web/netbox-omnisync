@@ -1,0 +1,852 @@
+{
+  "/redfish/v1/": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#ServiceRoot.ServiceRoot",
+      "@odata.id": "/redfish/v1",
+      "@odata.type": "#ServiceRoot.v1_3_0.ServiceRoot",
+      "AccountService": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/AccountService"
+      },
+      "Chassis": {
+        "@odata.id": "/redfish/v1/Chassis"
+      },
+      "Description": "Root Service",
+      "EventService": {
+        "@odata.id": "/redfish/v1/EventService"
+      },
+      "Fabrics": {
+        "@odata.id": "/redfish/v1/Fabrics"
+      },
+      "Id": "RootService",
+      "JsonSchemas": {
+        "@odata.id": "/redfish/v1/JSONSchemas"
+      },
+      "Links": {
+        "Sessions": {
+          "@odata.id": "/redfish/v1/Sessions"
+        }
+      },
+      "Managers": {
+        "@odata.id": "/redfish/v1/Managers"
+      },
+      "Name": "Root Service",
+      "Oem": {
+        "Dell": {
+          "@odata.type": "#DellServiceRoot.v1_0_0.ServiceRootSummary",
+          "IsBranded": 0,
+          "ManagerMACAddress": "02:00:00:00:00:0D",
+          "ServiceTag": "878X8Z3"
+        }
+      },
+      "Product": "Integrated Dell Remote Access Controller",
+      "ProtocolFeaturesSupported": {
+        "ExpandQuery": {
+          "ExpandAll": true,
+          "Levels": true,
+          "Links": true,
+          "MaxLevels": 1,
+          "NoLinks": true
+        },
+        "FilterQuery": true,
+        "SelectQuery": true
+      },
+      "RedfishVersion": "1.4.0",
+      "Registries": {
+        "@odata.id": "/redfish/v1/Registries"
+      },
+      "SessionService": {
+        "@odata.id": "/redfish/v1/SessionService"
+      },
+      "Systems": {
+        "@odata.id": "/redfish/v1/Systems"
+      },
+      "Tasks": {
+        "@odata.id": "/redfish/v1/TaskService"
+      },
+      "UpdateService": {
+        "@odata.id": "/redfish/v1/UpdateService"
+      }
+    }
+  },
+  "/redfish/v1/Systems": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#ComputerSystemCollection.ComputerSystemCollection",
+      "@odata.id": "/redfish/v1/Systems",
+      "@odata.type": "#ComputerSystemCollection.ComputerSystemCollection",
+      "Description": "Collection of Computer Systems",
+      "Members": [
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1"
+        }
+      ],
+      "Members@odata.count": 1,
+      "Name": "Computer System Collection"
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#ComputerSystem.ComputerSystem",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1",
+      "@odata.type": "#ComputerSystem.v1_5_0.ComputerSystem",
+      "Actions": {
+        "#ComputerSystem.Reset": {
+          "ResetType@Redfish.AllowableValues": [
+            "On",
+            "ForceOff",
+            "ForceRestart",
+            "GracefulShutdown",
+            "PushPowerButton",
+            "Nmi"
+          ],
+          "target": "/redfish/v1/Systems/System.Embedded.1/Actions/ComputerSystem.Reset"
+        }
+      },
+      "AssetTag": "",
+      "Bios": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Bios"
+      },
+      "BiosVersion": "2.19.0",
+      "Boot": {
+        "BootOptions": {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/BootOptions"
+        },
+        "BootOrder": [
+          "HardDisk.List.1-1",
+          "Optical.SATAEmbedded.J-1"
+        ],
+        "BootOrder@odata.count": 2,
+        "BootSourceOverrideEnabled": "Once",
+        "BootSourceOverrideMode": "Legacy",
+        "BootSourceOverrideTarget": "None",
+        "BootSourceOverrideTarget@Redfish.AllowableValues": [
+          "None",
+          "Pxe",
+          "Cd",
+          "Floppy",
+          "Hdd",
+          "BiosSetup",
+          "Utilities",
+          "UefiTarget",
+          "SDCard",
+          "UefiHttp"
+        ],
+        "UefiTargetBootSourceOverride": ""
+      },
+      "Description": "Computer System which represents a machine (physical or virtual) and the local resources such as memory, cpu and other devices that can be accessed from that machine.",
+      "EthernetInterfaces": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces"
+      },
+      "HostName": "pve01.lab01",
+      "HostWatchdogTimer": {
+        "FunctionEnabled": false,
+        "Status": {
+          "State": "Disabled"
+        },
+        "TimeoutAction": "None"
+      },
+      "Id": "System.Embedded.1",
+      "IndicatorLED": "Off",
+      "Links": {
+        "Chassis": [
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1"
+          }
+        ],
+        "Chassis@odata.count": 1,
+        "CooledBy": [
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.1A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.2A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.3A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.4A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.5A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.6A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.7A"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.1B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.2B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.3B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.4B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.5B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.6B"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Sensors/Fans/0x17%7C%7CFan.Embedded.7B"
+          }
+        ],
+        "CooledBy@odata.count": 14,
+        "ManagedBy": [
+          {
+            "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1"
+          }
+        ],
+        "ManagedBy@odata.count": 1,
+        "Oem": {
+          "DELL": {
+            "@odata.type": "#DellComputerSystem.v1_0_0.DellComputerSystem",
+            "BootOrder": {
+              "@odata.id": "/redfish/v1/Systems/System.Embedded.1/BootSources"
+            }
+          }
+        },
+        "PoweredBy": [
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Power/PowerSupplies/PSU.Slot.1"
+          },
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1/Power/PowerSupplies/PSU.Slot.2"
+          }
+        ],
+        "PoweredBy@odata.count": 2
+      },
+      "Manufacturer": "Dell Inc.",
+      "Memory": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Memory"
+      },
+      "MemorySummary": {
+        "Status": {
+          "Health": "OK",
+          "HealthRollup": "OK",
+          "State": "Enabled"
+        },
+        "TotalSystemMemoryGiB": 224.0
+      },
+      "Model": "PowerEdge R630",
+      "Name": "System",
+      "NetworkInterfaces": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/NetworkInterfaces"
+      },
+      "PCIeDevices": [
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/130-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/2-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/1-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/9-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-23"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-29"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-31"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-49"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-26"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-3"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeDevice/0-28"
+        }
+      ],
+      "PCIeDevices@odata.count": 12,
+      "PCIeFunctions": [
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/130-0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/130-0-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/2-0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/1-0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/1-0-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/1-0-2"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/1-0-3"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/9-0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-23-4"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-0-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-29-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-31-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-49-2"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-26-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-3-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-28-0"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/PCIeFunction/0-28-7"
+        }
+      ],
+      "PCIeFunctions@odata.count": 17,
+      "PartNumber": "64Y2QBM22",
+      "PowerState": "On",
+      "ProcessorSummary": {
+        "Count": 2,
+        "LogicalProcessorCount": 32,
+        "Model": "Intel(R) Xeon(R) CPU E5-2620 v4 @ 2.10GHz",
+        "Status": {
+          "Health": "OK",
+          "HealthRollup": "OK",
+          "State": "Enabled"
+        }
+      },
+      "Processors": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Processors"
+      },
+      "SKU": "878X8Z3",
+      "SecureBoot": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SecureBoot"
+      },
+      "SerialNumber": "FWFNU8514L6547",
+      "SimpleStorage": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/SimpleStorage/Controllers"
+      },
+      "Status": {
+        "Health": "Critical",
+        "HealthRollup": "Critical",
+        "State": "Enabled"
+      },
+      "Storage": {
+        "@odata.id": "/redfish/v1/Systems/System.Embedded.1/Storage"
+      },
+      "SystemType": "Physical",
+      "UUID": "2w2t0053-1388-1152-184h-q3j97v789h58"
+    }
+  },
+  "/redfish/v1/Managers/iDRAC.Embedded.1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#Manager.Manager",
+      "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1",
+      "@odata.type": "#Manager.v1_3_3.Manager",
+      "Actions": {
+        "#Manager.Reset": {
+          "ResetType@Redfish.AllowableValues": [
+            "GracefulRestart"
+          ],
+          "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Manager.Reset"
+        },
+        "Oem": {
+          "OemManager.v1_1_0#OemManager.ExportSystemConfiguration": {
+            "ExportFormat@Redfish.AllowableValues": [
+              "XML",
+              "JSON"
+            ],
+            "ExportUse@Redfish.AllowableValues": [
+              "Default",
+              "Clone",
+              "Replace"
+            ],
+            "IncludeInExport@Redfish.AllowableValues": [
+              "Default",
+              "IncludeReadOnly",
+              "IncludePasswordHashValues",
+              "IncludeReadOnly,IncludePasswordHashValues"
+            ],
+            "ShareParameters": {
+              "IgnoreCertificateWarning@Redfish.AllowableValues": [
+                "Disabled",
+                "Enabled"
+              ],
+              "ProxySupport@Redfish.AllowableValues": [
+                "Disabled",
+                "EnabledProxyDefault",
+                "Enabled"
+              ],
+              "ProxyType@Redfish.AllowableValues": [
+                "HTTP",
+                "SOCKS4"
+              ],
+              "ShareType@Redfish.AllowableValues": [
+                "LOCAL",
+                "NFS",
+                "CIFS",
+                "HTTP",
+                "HTTPS"
+              ],
+              "Target@Redfish.AllowableValues": [
+                "ALL",
+                "IDRAC",
+                "BIOS",
+                "NIC",
+                "RAID"
+              ]
+            },
+            "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ExportSystemConfiguration"
+          },
+          "OemManager.v1_1_0#OemManager.ImportSystemConfiguration": {
+            "HostPowerState@Redfish.AllowableValues": [
+              "On",
+              "Off"
+            ],
+            "ImportSystemConfiguration@Redfish.AllowableValues": [
+              "TimeToWait",
+              "ImportBuffer"
+            ],
+            "ShareParameters": {
+              "IgnoreCertificateWarning@Redfish.AllowableValues": [
+                "Disabled",
+                "Enabled"
+              ],
+              "ProxySupport@Redfish.AllowableValues": [
+                "Disabled",
+                "EnabledProxyDefault",
+                "Enabled"
+              ],
+              "ProxyType@Redfish.AllowableValues": [
+                "HTTP",
+                "SOCKS4"
+              ],
+              "ShareType@Redfish.AllowableValues": [
+                "LOCAL",
+                "NFS",
+                "CIFS",
+                "HTTP",
+                "HTTPS"
+              ],
+              "Target@Redfish.AllowableValues": [
+                "ALL",
+                "IDRAC",
+                "BIOS",
+                "NIC",
+                "RAID"
+              ]
+            },
+            "ShutdownType@Redfish.AllowableValues": [
+              "Graceful",
+              "Forced",
+              "NoReboot"
+            ],
+            "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfiguration"
+          },
+          "OemManager.v1_1_0#OemManager.ImportSystemConfigurationPreview": {
+            "ImportSystemConfigurationPreview@Redfish.AllowableValues": [
+              "ImportBuffer"
+            ],
+            "ShareParameters": {
+              "IgnoreCertificateWarning@Redfish.AllowableValues": [
+                "Disabled",
+                "Enabled"
+              ],
+              "ProxySupport@Redfish.AllowableValues": [
+                "Disabled",
+                "EnabledProxyDefault",
+                "Enabled"
+              ],
+              "ProxyType@Redfish.AllowableValues": [
+                "HTTP",
+                "SOCKS4"
+              ],
+              "ShareType@Redfish.AllowableValues": [
+                "LOCAL",
+                "NFS",
+                "CIFS",
+                "HTTP",
+                "HTTPS"
+              ],
+              "Target@Redfish.AllowableValues": [
+                "ALL"
+              ]
+            },
+            "target": "/redfish/v1/Managers/iDRAC.Embedded.1/Actions/Oem/EID_674_Manager.ImportSystemConfigurationPreview"
+          }
+        }
+      },
+      "CommandShell": {
+        "ConnectTypesSupported": [
+          "SSH",
+          "Telnet",
+          "IPMI"
+        ],
+        "ConnectTypesSupported@odata.count": 3,
+        "MaxConcurrentSessions": 5,
+        "ServiceEnabled": true
+      },
+      "DateTime": "2026-01-01T00:00:00+00:00",
+      "DateTimeLocalOffset": "+01:00",
+      "Description": "BMC",
+      "EthernetInterfaces": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/EthernetInterfaces"
+      },
+      "FirmwareVersion": "2.86.86.86",
+      "GraphicalConsole": {
+        "ConnectTypesSupported": [
+          "KVMIP"
+        ],
+        "ConnectTypesSupported@odata.count": 1,
+        "MaxConcurrentSessions": 6,
+        "ServiceEnabled": true
+      },
+      "HostInterfaces": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/HostInterfaces"
+      },
+      "Id": "iDRAC.Embedded.1",
+      "Links": {
+        "ManagerForChassis": [
+          {
+            "@odata.id": "/redfish/v1/Chassis/System.Embedded.1"
+          }
+        ],
+        "ManagerForChassis@odata.count": 1,
+        "ManagerForServers": [
+          {
+            "@odata.id": "/redfish/v1/Systems/System.Embedded.1"
+          }
+        ],
+        "ManagerForServers@odata.count": 1,
+        "Oem": {
+          "Dell": {
+            "@odata.type": "#DellManager.v1_0_0.DellManager",
+            "Jobs": {
+              "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/Jobs"
+            }
+          }
+        }
+      },
+      "LogServices": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/LogServices"
+      },
+      "ManagerType": "BMC",
+      "Model": "13G Monolithic",
+      "Name": "Manager",
+      "NetworkProtocol": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/NetworkProtocol"
+      },
+      "Redundancy": [],
+      "Redundancy@odata.count": 0,
+      "SerialConsole": {
+        "ConnectTypesSupported": [],
+        "ConnectTypesSupported@odata.count": 0,
+        "MaxConcurrentSessions": 0,
+        "ServiceEnabled": false
+      },
+      "SerialInterfaces": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/SerialInterfaces"
+      },
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UUID": "047e273b-t8f8-3n89-7520-09350p4s2650",
+      "VirtualMedia": {
+        "@odata.id": "/redfish/v1/Managers/iDRAC.Embedded.1/VirtualMedia"
+      }
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterfaceCollection.EthernetInterfaceCollection",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces",
+      "@odata.type": "#EthernetInterfaceCollection.EthernetInterfaceCollection",
+      "Description": "Collection of Ethernet Interfaces for this System",
+      "Members": [
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-1-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-2-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-3-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-4-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-1-1"
+        },
+        {
+          "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-2-1"
+        }
+      ],
+      "Members@odata.count": 6,
+      "Name": "System Ethernet Interface Collection"
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-1-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-1-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "Integrated NIC 1 Port 1 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Integrated.1-1-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:0E",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:0E",
+      "SpeedMbps": 10240,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x0)/Pci(0x3,0x0)/Pci(0x0,0x0)/MAC(02000000000E,0x0)",
+      "VLAN": {}
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-2-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-2-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "Integrated NIC 1 Port 2 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Integrated.1-2-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:0F",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:0F",
+      "SpeedMbps": 10240,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x0)/Pci(0x3,0x0)/Pci(0x0,0x1)/MAC(02000000000F,0x0)",
+      "VLAN": {}
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-3-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-3-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "Integrated NIC 1 Port 3 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Integrated.1-3-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:10",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:10",
+      "SpeedMbps": 1000,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x0)/Pci(0x3,0x0)/Pci(0x0,0x2)/MAC(020000000010,0x0)",
+      "VLAN": {}
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-4-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Integrated.1-4-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "Integrated NIC 1 Port 4 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Integrated.1-4-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:11",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:11",
+      "SpeedMbps": 1000,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x0)/Pci(0x3,0x0)/Pci(0x0,0x3)/MAC(020000000011,0x0)",
+      "VLAN": {}
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-1-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-1-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "NIC in Slot 1 Port 1 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Slot.1-1-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:12",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:12",
+      "SpeedMbps": 10240,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x1)/Pci(0x3,0x0)/Pci(0x0,0x0)/MAC(020000000012,0x1)",
+      "VLAN": {}
+    }
+  },
+  "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-2-1": {
+    "status": 200,
+    "body": {
+      "@odata.context": "/redfish/v1/$metadata#EthernetInterface.EthernetInterface",
+      "@odata.id": "/redfish/v1/Systems/System.Embedded.1/EthernetInterfaces/NIC.Slot.1-2-1",
+      "@odata.type": "#EthernetInterface.v1_4_0.EthernetInterface",
+      "AutoNeg": true,
+      "Description": "NIC in Slot 1 Port 2 Partition 1",
+      "FQDN": null,
+      "FullDuplex": true,
+      "HostName": null,
+      "IPv4Addresses": [],
+      "IPv4Addresses@odata.count": 0,
+      "IPv6AddressPolicyTable": [],
+      "IPv6AddressPolicyTable@odata.count": 0,
+      "IPv6Addresses": [],
+      "IPv6Addresses@odata.count": 0,
+      "IPv6DefaultGateway": null,
+      "IPv6StaticAddresses": [],
+      "IPv6StaticAddresses@odata.count": 0,
+      "Id": "NIC.Slot.1-2-1",
+      "InterfaceEnabled": null,
+      "MACAddress": "02:00:00:00:00:13",
+      "MTUSize": null,
+      "MaxIPv6StaticAddresses": null,
+      "Name": "System Ethernet Interface",
+      "NameServers": [],
+      "NameServers@odata.count": 0,
+      "PermanentMACAddress": "02:00:00:00:00:13",
+      "SpeedMbps": 10240,
+      "Status": {
+        "Health": "OK",
+        "State": "Enabled"
+      },
+      "UefiDevicePath": "PciRoot(0x1)/Pci(0x3,0x0)/Pci(0x0,0x1)/MAC(020000000013,0x1)",
+      "VLAN": {}
+    }
+  }
+}

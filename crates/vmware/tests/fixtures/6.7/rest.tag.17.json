@@ -1,0 +1,9 @@
+{
+ "value": {
+  "category_id": "urn:vmomi:InventoryServiceCategory:00000000-0000-4000-8000-000000000279:GLOBAL",
+  "description": "",
+  "id": "urn:vmomi:InventoryServiceTag:00000000-0000-4000-8000-00000000028b:GLOBAL",
+  "name": "service-patroni-haproxy",
+  "used_by": []
+ }
+}

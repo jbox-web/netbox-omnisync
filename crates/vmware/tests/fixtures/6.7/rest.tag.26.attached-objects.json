@@ -1,0 +1,100 @@
+{
+ "value": [
+  {
+   "id": "vm-101544",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-105451",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-46714",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-60096",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-86961",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-46712",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-74946",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-74719",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-33682",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-132321",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-101202",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-71111",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-78228",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-64184",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-64182",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-81690",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-75082",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-43176",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-75083",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-52026",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-64260",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-74821",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-98386",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-119958",
+   "type": "VirtualMachine"
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+{
+ "value": [
+  {
+   "id": "vm-335",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-62503",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-144",
+   "type": "VirtualMachine"
+  },
+  {
+   "id": "vm-52096",
+   "type": "VirtualMachine"
+  }
+ ]
+}

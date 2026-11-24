@@ -1,0 +1,2563 @@
+{
+ "/cluster/status": {
+  "body": {
+   "data": [
+    {
+     "id": "cluster",
+     "name": "pve-cluster-b",
+     "nodes": 2,
+     "quorate": 1,
+     "type": "cluster",
+     "version": 3
+    },
+    {
+     "id": "node/pve01",
+     "local": 1,
+     "name": "pve01",
+     "nodeid": 1,
+     "online": 1,
+     "type": "node"
+    },
+    {
+     "id": "node/pve02",
+     "local": 0,
+     "name": "pve02",
+     "nodeid": 2,
+     "online": 1,
+     "type": "node"
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes": {
+  "body": {
+   "data": [
+    {
+     "id": "node/pve01",
+     "maxcpu": 32,
+     "maxmem": 270357209088,
+     "node": "pve01",
+     "status": "online",
+     "type": "node"
+    },
+    {
+     "id": "node/pve02",
+     "maxcpu": 56,
+     "maxmem": 540888895488,
+     "node": "pve02",
+     "status": "online",
+     "type": "node"
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes/pve01/lxc": {
+  "body": {
+   "data": []
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network": {
+  "body": {
+   "data": [
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "vmbr1.19",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "19",
+     "vlan-raw-device": "vmbr1"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "enp129s0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "vmbr1.20",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "20",
+     "vlan-raw-device": "vmbr1"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "enp130s0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond0",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "enp129s0 enp130s0",
+     "type": "bond"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond0",
+     "iface": "vmbr0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno4",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond1",
+     "iface": "vmbr1",
+     "method": "static",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno3",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "enp129s0d1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond2.25",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "25",
+     "vlan-raw-device": "bond2"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond2",
+     "iface": "vmbr2",
+     "method": "manual",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond2",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "enp129s0d1 enp130s0d1",
+     "type": "bond"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond1",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "eno1 eno2",
+     "type": "bond"
+    },
+    {
+     "iface": "idrac",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno2",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "enp130s0d1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/bond0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "enp129s0 enp130s0",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/bond1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "eno1 eno2",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/bond2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "enp129s0d1 enp130s0d1",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/bond2.25": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "25",
+    "vlan-raw-device": "bond2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/eno1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/eno2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/eno3": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/eno4": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/enp129s0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/enp129s0d1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/enp130s0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/enp130s0d1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/idrac": {
+  "body": {
+   "data": {
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/vmbr0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond0",
+    "method": "manual",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/vmbr1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond1",
+    "method": "static",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/vmbr1.19": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "19",
+    "vlan-raw-device": "vmbr1"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/vmbr1.20": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "20",
+    "vlan-raw-device": "vmbr1"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/network/vmbr2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond2",
+    "method": "manual",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu": {
+  "body": {
+   "data": [
+    {
+     "cpus": 2,
+     "maxdisk": 26843545600,
+     "maxmem": 2147483648,
+     "name": "vm001.example",
+     "status": "running",
+     "tags": "service-etcd",
+     "vmid": 109
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 16106127360,
+     "maxmem": 17179869184,
+     "name": "vm002.example",
+     "status": "running",
+     "tags": "tag-1;service-apache;tag-2",
+     "vmid": 105
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 16106127360,
+     "maxmem": 17179869184,
+     "name": "vm003.example",
+     "status": "stopped",
+     "tags": "tag-1;service-apache;tag-2",
+     "template": 1,
+     "vmid": 100
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 0,
+     "maxmem": 17179869184,
+     "name": "vm004.example",
+     "status": "stopped",
+     "tags": "service-apache",
+     "template": 1,
+     "vmid": 101
+    },
+    {
+     "cpus": 4,
+     "maxdisk": 26843545600,
+     "maxmem": 8589934592,
+     "name": "vm005.example",
+     "status": "running",
+     "tags": "service-restic",
+     "vmid": 113
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 26843545600,
+     "maxmem": 17179869184,
+     "name": "vm006.example",
+     "status": "running",
+     "tags": "service-apache",
+     "vmid": 116
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 0,
+     "maxmem": 17179869184,
+     "name": "vm007.example",
+     "status": "running",
+     "tags": "service-apache;service-docker;service-php-fpm",
+     "vmid": 103
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 16106127360,
+     "maxmem": 17179869184,
+     "name": "vm008.example",
+     "status": "running",
+     "tags": "tag-1;service-apache;tag-2",
+     "vmid": 117
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 26843545600,
+     "maxmem": 51539607552,
+     "name": "vm009.example",
+     "status": "running",
+     "tags": "service-postgres",
+     "vmid": 107
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/100/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-100-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm003.example",
+    "net0": "virtio=02:00:00:00:00:1A,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:1B,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=15G",
+    "sockets": 1,
+    "tags": "tag-1;service-apache;tag-2",
+    "template": 1
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/100/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 16106127360,
+    "maxmem": 17179869184,
+    "name": "vm003.example",
+    "qmpstatus": "stopped",
+    "status": "stopped",
+    "tags": "tag-1;service-apache;tag-2",
+    "template": 1,
+    "vmid": 100
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/101/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-101-cloudinit.raw,media=cdrom",
+    "memory": "16384",
+    "name": "vm004.example",
+    "net0": "virtio=02:00:00:00:00:1C,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:1D,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=50G",
+    "sockets": 1,
+    "tags": "service-apache",
+    "template": 1
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/101/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 0,
+    "maxmem": 17179869184,
+    "name": "vm004.example",
+    "qmpstatus": "stopped",
+    "status": "stopped",
+    "tags": "service-apache",
+    "template": 1,
+    "vmid": 101
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/103/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.12.117+deb13-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 13 (trixie)",
+     "version": "13 (trixie)",
+     "version-id": "13"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/103/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:01",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.100",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::1",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:02",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.100",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::2",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:03",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.2.1",
+        "ip-address-type": "ipv4",
+        "prefix": 16
+       }
+      ],
+      "name": "docker0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:04",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.3.1",
+        "ip-address-type": "ipv4",
+        "prefix": 16
+       },
+       {
+        "ip-address": "fe80::3",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "br-853ab3c0f722"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:05",
+      "ip-addresses": [
+       {
+        "ip-address": "fe80::4",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "veth9fe4a1d"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:06",
+      "ip-addresses": [
+       {
+        "ip-address": "fe80::5",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "vethd9ba1fd"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:07",
+      "ip-addresses": [
+       {
+        "ip-address": "fe80::6",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "veth9c2f835"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/103/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-103-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm007.example",
+    "net0": "virtio=02:00:00:00:00:01,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:02,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=50G",
+    "sockets": 1,
+    "tags": "service-apache;service-docker;service-php-fpm"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/103/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 0,
+    "maxmem": 17179869184,
+    "name": "vm007.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-apache;service-docker;service-php-fpm",
+    "vmid": 103
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/105/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "error": {
+      "class": "CommandNotFound",
+      "desc": "The command guest-get-osinfo has not been found"
+     }
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/105/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:08",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.177",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::7",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:09",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.177",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::8",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/105/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-105-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm002.example",
+    "net0": "virtio=02:00:00:00:00:08,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:09,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=15G",
+    "sockets": 1,
+    "tags": "tag-1;service-apache;tag-2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/105/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 16106127360,
+    "maxmem": 17179869184,
+    "name": "vm002.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "tag-1;service-apache;tag-2",
+    "vmid": 105
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/107/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-44-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/107/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0a",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.19",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::9",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/107/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 8,
+    "ide1": "store1:vm-107-cloudinit.qcow2,media=cdrom",
+    "memory": "49152",
+    "name": "vm009.example",
+    "net0": "virtio=02:00:00:00:00:0A,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=250G",
+    "sockets": 1,
+    "tags": "service-postgres"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/107/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 26843545600,
+    "maxmem": 51539607552,
+    "name": "vm009.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-postgres",
+    "vmid": 107
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/109/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-43-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/109/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0b",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.10",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::a",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/109/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 2,
+    "ide1": "store1:vm-109-cloudinit.raw,media=cdrom",
+    "memory": "2048",
+    "name": "vm001.example",
+    "net0": "virtio=02:00:00:00:00:0B,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "sockets": 1,
+    "tags": "service-etcd"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/109/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 2,
+    "maxdisk": 26843545600,
+    "maxmem": 2147483648,
+    "name": "vm001.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-etcd",
+    "vmid": 109
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/113/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-52-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/113/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0c",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.12",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::b",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/113/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 4,
+    "ide2": "store1:vm-113-cloudinit.qcow2,media=cdrom",
+    "memory": "8192",
+    "name": "vm005.example",
+    "net0": "virtio=02:00:00:00:00:0C,bridge=vmbr0,tag=10",
+    "ostype": "l26",
+    "sockets": 1,
+    "tags": "service-restic",
+    "virtio0": "store1:vm-disk-0.qcow2,size=25G",
+    "virtio1": "store1:vm-disk-1.qcow2,size=40G",
+    "virtio2": "store1:vm-disk-2.qcow2,size=20G"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/113/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 4,
+    "maxdisk": 26843545600,
+    "maxmem": 8589934592,
+    "name": "vm005.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-restic",
+    "vmid": 113
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/116/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.12.96+deb13-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 13 (trixie)",
+     "version": "13 (trixie)",
+     "version-id": "13"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/116/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0d",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.200",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::c",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0e",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.200",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::d",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/116/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 8,
+    "ide1": "store1:vm-116-cloudinit.qcow2,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm006.example",
+    "net0": "virtio=02:00:00:00:00:0D,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:0E,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=20G",
+    "sockets": 1,
+    "tags": "service-apache"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/116/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 26843545600,
+    "maxmem": 17179869184,
+    "name": "vm006.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-apache",
+    "vmid": 116
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/117/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "error": {
+      "class": "CommandNotFound",
+      "desc": "The command guest-get-osinfo has not been found"
+     }
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/117/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:0f",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.201",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::e",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:10",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.201",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::f",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/117/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-117-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm008.example",
+    "net0": "virtio=02:00:00:00:00:0F,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:10,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=15G",
+    "sockets": 1,
+    "tags": "tag-1;service-apache;tag-2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/qemu/117/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 16106127360,
+    "maxmem": 17179869184,
+    "name": "vm008.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "tag-1;service-apache;tag-2",
+    "vmid": 117
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve01/status": {
+  "body": {
+   "data": {
+    "cpuinfo": {
+     "cores": 16,
+     "cpus": 32,
+     "sockets": 2
+    },
+    "memory": {
+     "total": 270357209088
+    },
+    "pveversion": "pve-manager/9.2.11/0000000000000000"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/lxc": {
+  "body": {
+   "data": []
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network": {
+  "body": {
+   "data": [
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "ens2f0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond2",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "ens1f1 ens2f1",
+     "type": "bond"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond2",
+     "iface": "vmbr2",
+     "method": "manual",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "ens2f1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno2",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno3",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond2.25",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "25",
+     "vlan-raw-device": "bond2"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond0",
+     "iface": "vmbr0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "vmbr1.20",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "20",
+     "vlan-raw-device": "vmbr1"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "ens1f1",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond1",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "eno1 eno2",
+     "type": "bond"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "bond0",
+     "method": "manual",
+     "method6": "manual",
+     "slaves": "ens1f0 ens2f0",
+     "type": "bond"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "bridge_ports": "bond1",
+     "iface": "vmbr1",
+     "method": "static",
+     "method6": "manual",
+     "type": "bridge"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "ens1f0",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "eno4",
+     "method": "manual",
+     "method6": "manual",
+     "type": "eth"
+    },
+    {
+     "active": 1,
+     "autostart": 1,
+     "iface": "vmbr1.19",
+     "method": "static",
+     "method6": "manual",
+     "type": "vlan",
+     "vlan-id": "19",
+     "vlan-raw-device": "vmbr1"
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/bond0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "ens1f0 ens2f0",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/bond1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "eno1 eno2",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/bond2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "slaves": "ens1f1 ens2f1",
+    "type": "bond"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/bond2.25": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "25",
+    "vlan-raw-device": "bond2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/eno1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/eno2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/eno3": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/eno4": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/ens1f0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/ens1f1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/ens2f0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/ens2f1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "manual",
+    "method6": "manual",
+    "type": "eth"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/vmbr0": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond0",
+    "method": "manual",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/vmbr1": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond1",
+    "method": "static",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/vmbr1.19": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "19",
+    "vlan-raw-device": "vmbr1"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/vmbr1.20": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "method": "static",
+    "method6": "manual",
+    "type": "vlan",
+    "vlan-id": "20",
+    "vlan-raw-device": "vmbr1"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/network/vmbr2": {
+  "body": {
+   "data": {
+    "active": 1,
+    "autostart": 1,
+    "bridge_ports": "bond2",
+    "method": "manual",
+    "method6": "manual",
+    "type": "bridge"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu": {
+  "body": {
+   "data": [
+    {
+     "cpus": 8,
+     "maxdisk": 16106127360,
+     "maxmem": 17179869184,
+     "name": "vm010.example",
+     "status": "running",
+     "tags": "tag-1;service-apache;tag-2",
+     "vmid": 106
+    },
+    {
+     "cpus": 2,
+     "maxdisk": 26843545600,
+     "maxmem": 2147483648,
+     "name": "vm011.example",
+     "status": "running",
+     "tags": "service-keepalived;service-patroni-haproxy;service-pgbouncer",
+     "vmid": 108
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 26843545600,
+     "maxmem": 17179869184,
+     "name": "vm012.example",
+     "status": "stopped",
+     "tags": "service-apache",
+     "template": 1,
+     "vmid": 115
+    },
+    {
+     "cpus": 4,
+     "maxdisk": 26843545600,
+     "maxmem": 4294967296,
+     "name": "vm013.example",
+     "status": "stopped",
+     "template": 1,
+     "vmid": 114
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 16106127360,
+     "maxmem": 17179869184,
+     "name": "vm014.example",
+     "status": "running",
+     "tags": "tag-1;service-apache;tag-2",
+     "vmid": 104
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 26843545600,
+     "maxmem": 51539607552,
+     "name": "vm015.example",
+     "status": "running",
+     "tags": "service-postgres",
+     "vmid": 110
+    },
+    {
+     "cpus": 4,
+     "maxdisk": 26843545600,
+     "maxmem": 4294967296,
+     "name": "vm016.example",
+     "status": "stopped",
+     "template": 1,
+     "vmid": 111
+    },
+    {
+     "cpus": 2,
+     "maxdisk": 26843545600,
+     "maxmem": 2147483648,
+     "name": "vm017.example",
+     "status": "running",
+     "tags": "service-etcd",
+     "vmid": 112
+    },
+    {
+     "cpus": 8,
+     "maxdisk": 0,
+     "maxmem": 17179869184,
+     "name": "vm018.example",
+     "status": "running",
+     "tags": "service-apache;service-php-fpm",
+     "vmid": 102
+    }
+   ]
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/102/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.12.117+deb13-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 13 (trixie)",
+     "version": "13 (trixie)",
+     "version-id": "13"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/102/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:11",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.102",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::10",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:12",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.102",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::11",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/102/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-102-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm018.example",
+    "net0": "virtio=02:00:00:00:00:11,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:12,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=50G",
+    "sockets": 1,
+    "tags": "service-apache;service-php-fpm"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/102/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 0,
+    "maxmem": 17179869184,
+    "name": "vm018.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-apache;service-php-fpm",
+    "vmid": 102
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/104/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "error": {
+      "class": "CommandNotFound",
+      "desc": "The command guest-get-osinfo has not been found"
+     }
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/104/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:13",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.98",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::12",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:14",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.98",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::13",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/104/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-104-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm014.example",
+    "net0": "virtio=02:00:00:00:00:13,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:14,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=15G",
+    "sockets": 1,
+    "tags": "tag-1;service-apache;tag-2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/104/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 16106127360,
+    "maxmem": 17179869184,
+    "name": "vm014.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "tag-1;service-apache;tag-2",
+    "vmid": 104
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/106/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "error": {
+      "class": "CommandNotFound",
+      "desc": "The command guest-get-osinfo has not been found"
+     }
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/106/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:15",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.0.96",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::14",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:16",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.96",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::15",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth1"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/106/config": {
+  "body": {
+   "data": {
+    "agent": "1,fstrim_cloned_disks=1",
+    "cores": 8,
+    "ide1": "store1:vm-106-cloudinit.raw,media=cdrom,size=4M",
+    "memory": "16384",
+    "name": "vm010.example",
+    "net0": "virtio=02:00:00:00:00:15,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:16,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=15G",
+    "sockets": 1,
+    "tags": "tag-1;service-apache;tag-2"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/106/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 16106127360,
+    "maxmem": 17179869184,
+    "name": "vm010.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "tag-1;service-apache;tag-2",
+    "vmid": 106
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/108/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-43-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/108/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:17",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.12",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::16",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/108/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 2,
+    "ide1": "store1:vm-108-cloudinit.raw,media=cdrom",
+    "memory": "2048",
+    "name": "vm011.example",
+    "net0": "virtio=02:00:00:00:00:17,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "sockets": 1,
+    "tags": "service-keepalived;service-patroni-haproxy;service-pgbouncer"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/108/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 2,
+    "maxdisk": 26843545600,
+    "maxmem": 2147483648,
+    "name": "vm011.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-keepalived;service-patroni-haproxy;service-pgbouncer",
+    "vmid": 108
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/110/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-43-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/110/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:18",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.14",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::17",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/110/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 8,
+    "ide1": "store1:vm-110-cloudinit.raw,media=cdrom",
+    "memory": "49152",
+    "name": "vm015.example",
+    "net0": "virtio=02:00:00:00:00:18,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "scsi1": "store1:vm-disk-1.qcow2,size=250G",
+    "sockets": 1,
+    "tags": "service-postgres"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/110/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 26843545600,
+    "maxmem": 51539607552,
+    "name": "vm015.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-postgres",
+    "vmid": 110
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/111/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 4,
+    "memory": "4096",
+    "name": "vm016.example",
+    "net0": "virtio=02:00:00:00:00:1E,bridge=vmbr0,tag=10",
+    "ostype": "l26",
+    "sockets": 1,
+    "template": 1,
+    "virtio0": "store1:vm-disk-0.qcow2,size=25G"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/111/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 4,
+    "maxdisk": 26843545600,
+    "maxmem": 4294967296,
+    "name": "vm016.example",
+    "qmpstatus": "stopped",
+    "status": "stopped",
+    "template": 1,
+    "vmid": 111
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/112/agent/get-osinfo": {
+  "body": {
+   "data": {
+    "result": {
+     "id": "debian",
+     "kernel-release": "6.1.0-44-amd64",
+     "machine": "x86_64",
+     "name": "Debian GNU/Linux",
+     "pretty-name": "Debian GNU/Linux 12 (bookworm)",
+     "version": "12 (bookworm)",
+     "version-id": "12"
+    }
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/112/agent/network-get-interfaces": {
+  "body": {
+   "data": {
+    "result": [
+     {
+      "hardware-address": "00:00:00:00:00:00",
+      "ip-addresses": [
+       {
+        "ip-address": "127.0.0.1",
+        "ip-address-type": "ipv4",
+        "prefix": 8
+       },
+       {
+        "ip-address": "::1",
+        "ip-address-type": "ipv6",
+        "prefix": 128
+       }
+      ],
+      "name": "lo"
+     },
+     {
+      "hardware-address": "02:00:00:00:00:19",
+      "ip-addresses": [
+       {
+        "ip-address": "198.18.1.23",
+        "ip-address-type": "ipv4",
+        "prefix": 24
+       },
+       {
+        "ip-address": "fe80::18",
+        "ip-address-type": "ipv6",
+        "prefix": 64
+       }
+      ],
+      "name": "eth0"
+     }
+    ]
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/112/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 2,
+    "ide1": "store1:vm-112-cloudinit.qcow2,media=cdrom",
+    "memory": "2048",
+    "name": "vm017.example",
+    "net0": "virtio=02:00:00:00:00:19,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "sockets": 1,
+    "tags": "service-etcd"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/112/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 2,
+    "maxdisk": 26843545600,
+    "maxmem": 2147483648,
+    "name": "vm017.example",
+    "qmpstatus": "running",
+    "status": "running",
+    "tags": "service-etcd",
+    "vmid": 112
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/114/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 4,
+    "memory": "4096",
+    "name": "vm013.example",
+    "net0": "virtio=02:00:00:00:00:1F,bridge=vmbr0,tag=10",
+    "ostype": "l26",
+    "sockets": 1,
+    "template": 1,
+    "virtio0": "store1:vm-disk-0.qcow2,size=25G"
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/114/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 4,
+    "maxdisk": 26843545600,
+    "maxmem": 4294967296,
+    "name": "vm013.example",
+    "qmpstatus": "stopped",
+    "status": "stopped",
+    "template": 1,
+    "vmid": 114
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/115/config": {
+  "body": {
+   "data": {
+    "agent": "1",
+    "cores": 8,
+    "ide1": "store1:vm-115-cloudinit.raw,media=cdrom",
+    "memory": "16384",
+    "name": "vm012.example",
+    "net0": "virtio=02:00:00:00:00:20,bridge=vmbr0,tag=10",
+    "net1": "virtio=02:00:00:00:00:21,bridge=vmbr0,tag=11",
+    "ostype": "l26",
+    "scsi0": "store1:vm-disk-0.qcow2,size=25G",
+    "sockets": 1,
+    "tags": "service-apache",
+    "template": 1
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/qemu/115/status/current": {
+  "body": {
+   "data": {
+    "agent": 1,
+    "cpus": 8,
+    "maxdisk": 26843545600,
+    "maxmem": 17179869184,
+    "name": "vm012.example",
+    "qmpstatus": "stopped",
+    "status": "stopped",
+    "tags": "service-apache",
+    "template": 1,
+    "vmid": 115
+   }
+  },
+  "status": 200
+ },
+ "/nodes/pve02/status": {
+  "body": {
+   "data": {
+    "cpuinfo": {
+     "cores": 28,
+     "cpus": 56,
+     "sockets": 2
+    },
+    "memory": {
+     "total": 540888895488
+    },
+    "pveversion": "pve-manager/9.2.11/0000000000000000"
+   }
+  },
+  "status": 200
+ },
+ "/version": {
+  "body": {
+   "data": {
+    "release": "9.2",
+    "version": "9.2.11"
+   }
+  },
+  "status": 200
+ }
+}

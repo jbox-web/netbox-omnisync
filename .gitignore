@@ -1,0 +1,9 @@
+target/
+# What scripts/release-build.sh and dev:licenses produce.
+dist/
+.claude/
+.vscode/
+# The real fleet: start from config.example.toml.
+/config.toml
+# What cargo-mutants writes.
+mutants.out*/
