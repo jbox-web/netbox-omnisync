@@ -67,6 +67,11 @@ description = "Integration tests against a disposable NetBox in Docker, NETBOX_V
 timeout = "30m"
 run = """
 set -eu
+# One stack per checkout: the project is named after the path of this one, and
+# Docker chooses the port NetBox is published on, so that two checkouts (two
+# worktrees of the repository) run their tests at the same time.
+COMPOSE_PROJECT_NAME="netbox-omnisync-integration-$(pwd -P | cksum | cut -d ' ' -f 1)"
+export COMPOSE_PROJECT_NAME
 compose="docker compose -f crates/cli/tests/integration/docker-compose.yml"
 tests=""
 # The stack is destroyed whatever ends the task: success, failure, Ctrl-C or
@@ -81,6 +86,15 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 $compose up -d --wait --wait-timeout 600
+# `127.0.0.1:<port>`, the port Docker chose. Without it the tests would wait
+# for a NetBox at no address, one after the other.
+published="$($compose port netbox 8080)"
+if [ -z "$published" ]; then
+  echo "docker compose gives no port for NetBox" >&2
+  exit 1
+fi
+NETBOX_INTEGRATION_URL="http://$published"
+export NETBOX_INTEGRATION_URL
 # One at a time: the tests share the NetBox, and each starts from an empty one.
 cargo test -p omnisync-cli --test integration --locked -- --ignored --test-threads=1 &
 tests=$!

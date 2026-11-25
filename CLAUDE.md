@@ -30,7 +30,8 @@ mise run dev:licenses                     # dist/THIRD-PARTY-NOTICES.txt (cargo-
 the Linux ones need docker. Done means `dev:lint`,
 `cargo deny check` and `dev:test` pass. `dev:test-integration`
 (`crates/cli/tests/integration`) starts its own stack and destroys it whatever
-ends the task; run it after a change to what is written to NetBox or to how
+ends the task (one stack per checkout, on a port Docker chooses: two worktrees
+run it at the same time); run it after a change to what is written to NetBox or to how
 its answers are read. CI runs it, with `cargo deny check`, every Monday and
 on demand (`.github/workflows/ci.yml`, job `integration`).
 

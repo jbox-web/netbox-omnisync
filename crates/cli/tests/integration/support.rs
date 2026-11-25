@@ -2,6 +2,7 @@
 
 use std::collections::BTreeSet;
 use std::path::PathBuf;
+use std::sync::OnceLock;
 use std::time::{Duration, Instant};
 
 use omnisync_core::gateway::filters;
@@ -11,8 +12,21 @@ use serde_json::{Value, json};
 use tokio::process::Command;
 use tokio::sync::{Mutex, MutexGuard, OnceCell};
 
-/// Where `docker-compose.yml` publishes NetBox.
-pub const URL: &str = "http://127.0.0.1:8765";
+/// The variable `mise run dev:test-integration` gives the address of NetBox in.
+const URL_VARIABLE: &str = "NETBOX_INTEGRATION_URL";
+
+/// Where the stack of this run publishes NetBox: a port of the loopback Docker
+/// chose, so that two checkouts run their tests at the same time. The task
+/// reads it once the stack is up, and names the Compose project after the
+/// checkout (`COMPOSE_PROJECT_NAME`, which the `docker compose` run here
+/// inherits).
+pub fn url() -> &'static str {
+    static URL: OnceLock<String> = OnceLock::new();
+    URL.get_or_init(|| {
+        std::env::var(URL_VARIABLE)
+            .unwrap_or_else(|_| panic!("{URL_VARIABLE} is not set: run the tests with `mise run dev:test-integration`"))
+    })
+}
 
 /// The superuser of `docker-compose.yml`: throwaway values of the stack.
 const SUPERUSER: &str = "admin";
@@ -62,14 +76,14 @@ async fn wait_ready(http: &reqwest::Client) {
     let deadline = Instant::now() + READY_TIMEOUT;
     while Instant::now() < deadline {
         // 403: the API is up and wants a token.
-        if let Ok(answer) = http.get(format!("{URL}/api/status/")).send().await
+        if let Ok(answer) = http.get(format!("{}/api/status/", url())).send().await
             && matches!(answer.status().as_u16(), 200 | 403)
         {
             return;
         }
         tokio::time::sleep(Duration::from_secs(5)).await;
     }
-    panic!("NetBox did not start at {URL}: run the tests with `mise run dev:test-integration`");
+    panic!("NetBox did not start at {}: run the tests with `mise run dev:test-integration`", url());
 }
 
 /// Builds the OpenAPI schema once, before any client asks for it. NetBox caches
@@ -78,7 +92,7 @@ async fn wait_ready(http: &reqwest::Client) {
 /// laptop, 2026-11-24, longer on a busy CI runner): that time is kept out of
 /// the timeout of the first test.
 async fn warm_schema(token: &str) {
-    let client = NetboxClient::builder(URL, token).timeout(READY_TIMEOUT).build().expect("a NetBox client");
+    let client = NetboxClient::builder(url(), token).timeout(READY_TIMEOUT).build().expect("a NetBox client");
     client
         .check_write(omnisync_core::Write::Create, "extras.tags", &["name".to_owned()])
         .await
@@ -98,7 +112,7 @@ async fn provision_token() -> String {
         .output()
         .await;
     let answer = http
-        .post(format!("{URL}/api/users/tokens/provision/"))
+        .post(format!("{}/api/users/tokens/provision/", url()))
         .json(&json!({"username": SUPERUSER, "password": SUPERUSER_PASSWORD}))
         .send()
         .await
@@ -199,7 +213,7 @@ impl Netbox {
     async fn emptied(endpoints: &[&str]) -> Self {
         let alone = NETBOX.lock().await;
         let token = TOKEN.get_or_init(provision_token).await.as_str();
-        let client = NetboxClient::new(URL, token).expect("a NetBox client");
+        let client = NetboxClient::new(url(), token).expect("a NetBox client");
         for endpoint in endpoints {
             let rows = client.list(endpoint, &Vec::new()).await.unwrap_or_else(|error| panic!("{endpoint}: {error}"));
             for row in rows {
@@ -212,7 +226,7 @@ impl Netbox {
 
     /// A second client on the same NetBox, which refuses every write.
     pub fn dry_run(&self) -> NetboxClient {
-        NetboxClient::builder(URL, self.token).dry_run(true).build().expect("a NetBox client")
+        NetboxClient::builder(url(), self.token).dry_run(true).build().expect("a NetBox client")
     }
 
     /// Creates an object as an operator, or an old tool, would have; returns its id.
