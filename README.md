@@ -627,7 +627,8 @@ this kind once a day.
   504.
 - **A token with write access**, given as `NETBOX_TOKEN`. A token starting
   with `nbt_` is sent as a v2 token (`Bearer`), any other as a v1 token.
-  NetBox 4.7 no longer takes v1 tokens: from 4.5, create a v2 one. It
+  NetBox 4.5 to 4.7 still take v1 tokens, deprecated since 4.6 and removed
+  in 5.0: from 4.5, create a v2 one. It
   must be able to read the OpenAPI schema (`/api/schema/`): every query filter
   is checked against it, and an unknown filter is refused instead of sent.
 - **Rights.** For hypervisors: view, add, change and delete on tags, tenants,

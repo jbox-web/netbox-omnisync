@@ -232,7 +232,8 @@ release (or warns, `netbox.unsupported_version`). For a new minor, say 4.8:
 2. **Read its release notes**, the "Breaking Changes" of each release: what
    the tests do not write (a field NetBox now renders otherwise, a token or a
    requirement of the API) is found there. The selection custom fields read as
-   `{value, label}` in 4.7, and the v1 tokens 4.7 removed, came from there.
+   `{value, label}` in 4.7, and the v1 tokens deprecated in 4.6 (removed in
+   5.0), came from there.
 3. **Add the variant** to `Dialect` and to `Dialect::SUPPORTED`. Where the
    release writes or reads an object differently, the difference is a method
    of `Dialect`, matched on `self`, between the `VERSION SEAM` banners, and the
