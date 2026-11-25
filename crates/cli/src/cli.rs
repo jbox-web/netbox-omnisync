@@ -1065,7 +1065,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
     use std::time::Duration;
 
-    use omnisync_core::inventory::model::{Desired, Identity, Kind};
+    use omnisync_core::inventory::model::{Desired, Identity, Kind, VrfKey};
     use omnisync_core::network::collect::CollectionError;
     use omnisync_core::network::inventory::{Secret, Source, Wanted};
     use omnisync_core::network::model::DeviceState;
@@ -1155,10 +1155,13 @@ mod tests {
 
     /// Answers for the hypervisors: what the test scripted, or the refusal of
     /// a build that cannot read them.
-    struct Scripted(Option<Reading>);
+    struct Scripted(Option<Reading>, Vec<(String, Reading)>);
 
     impl Reader for Scripted {
         async fn read(&self, source: &Hypervisor) -> Result<Reading, String> {
+            if let Some((_, reading)) = self.1.iter().find(|(name, _)| *name == source.name) {
+                return Ok(reading.clone());
+            }
             self.0.clone().ok_or(format!("{} sources are not implemented in this build", source.r#type.as_str()))
         }
     }
@@ -1238,6 +1241,8 @@ mod tests {
         stuck: Option<Arc<Notify>>,
         /// What the hypervisor sources report; None when they cannot be read.
         hypervisor: Option<Reading>,
+        /// What the hypervisor sources named here report, each its own.
+        readings: Vec<(String, Reading)>,
         /// The mails a digest sent: the sendmail it named, and the message.
         mails: Mutex<Vec<(PathBuf, String)>>,
         /// Set: sendmail fails with this message.
@@ -1266,6 +1271,7 @@ mod tests {
                 lock_seen: Mutex::default(),
                 stuck: None,
                 hypervisor: None,
+                readings: Vec::new(),
                 mails: Mutex::default(),
                 mail_refusal: None,
                 full_name: None,
@@ -1309,7 +1315,7 @@ mod tests {
         }
 
         fn reader(&self, _environ: &Environ) -> Scripted {
-            Scripted(self.hypervisor.clone())
+            Scripted(self.hypervisor.clone(), self.readings.clone())
         }
 
         fn now(&self) -> ZonedDateTime {
@@ -2530,6 +2536,58 @@ mod tests {
         let refusal = "error: not run by sat01.lab02: nexus01.lab01 (run by sync01.lab01)\n";
         assert_eq!((ran.code, ran.stderr.as_str()), (1, refusal));
         assert_eq!((lab.asked(), lab.dry_runs()), (vec![], vec![]));
+    }
+
+    /// The prefix two Proxmox report, as `source` describes it.
+    fn prefix_of(source: &str) -> (String, Reading) {
+        let prefix = Desired::new(Kind::Prefix, Identity::prefix("192.168.10.0/24", VrfKey::Unknown), source)
+            .field("prefix", "192.168.10.0/24")
+            .field("description", source)
+            .ensure_only();
+        (source.to_owned(), Reading { objects: vec![prefix], ..Reading::default() })
+    }
+
+    #[tokio::test]
+    async fn two_hosts_that_report_the_same_object_never_write_it_back_and_forth() {
+        // pve01.lab01, ranked first, on the central server; pve02.lab02 on the satellite.
+        let second =
+            "\n[[sources]]\nname = \"pve02.lab02\"\nkind = \"hypervisor\"\nhost = \"192.0.2.11\"\ntype = \"proxmox\"\n";
+        let ranked = CONFIG.replacen(
+            "url = \"https://netbox.example\"\n",
+            "url = \"https://netbox.example\"\nsource_priority = [\"pve01.lab01\", \"pve02.lab02\"]\n",
+            1,
+        );
+        let file = shared(&format!("{ranked}{HYPERVISOR}{second}"), &["pve02.lab02"]);
+        let central = Bench::new(&file).with(&HYPERVISOR_ENV);
+        let satellite = Bench::new(&file).with(&[("PVE02_LAB02_TOKEN", "pve-secret")]);
+        let readings = vec![prefix_of("pve01.lab01"), prefix_of("pve02.lab02")];
+        let on_central = Lab { readings: readings.clone(), ..Lab::new("SN0") }.on(SYNC01);
+        let on_satellite = Lab { netbox: Arc::clone(&on_central.netbox), readings, ..Lab::new("SN0") }.on(SAT01);
+        let netbox = &on_central.netbox;
+        let description = || {
+            let prefix = netbox.find("ipam.prefixes", "prefix", &json!("192.168.10.0/24")).expect("prefix written");
+            netbox.row("ipam.prefixes", prefix).unwrap()["description"].clone()
+        };
+        let hypervisors = ["--kind", "hypervisor"];
+
+        // The first run of each host: the satellite creates the prefix, the central server takes it.
+        let ran = satellite.run(&on_satellite, &hypervisors).await;
+        assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
+        assert_eq!(description(), json!("pve02.lab02"));
+        let ran = central.run(&on_central, &hypervisors).await;
+        assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
+        assert_eq!(description(), json!("pve01.lab01"));
+
+        // From then on, whoever runs writes nothing.
+        let written = netbox.writes().len();
+        for _ in 0..2 {
+            let ran = satellite.run(&on_satellite, &hypervisors).await;
+            assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
+            let ran = central.run(&on_central, &hypervisors).await;
+            assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
+        }
+        assert_eq!(netbox.writes().len(), written);
+        assert_eq!(description(), json!("pve01.lab01"));
     }
 
     #[tokio::test]

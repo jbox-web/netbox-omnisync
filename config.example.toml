@@ -96,6 +96,8 @@ validate_certs = true
 # wins; a source that only wants an object to exist never keeps another from
 # describing it. Every name must be a source of this file. Default: none
 # (sources left out of the list come last, by name).
+# The order holds between two sources that run apart as well (two hosts of
+# `runners`, two crons): the object stays the one of the first of them.
 source_priority = [
   "vcenter01.lab01",
   "pve01.lab01",

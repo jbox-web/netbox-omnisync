@@ -381,6 +381,11 @@ netbox-omnisync sync --config config.toml --kind hypervisor --type proxmox
   ever names one host, the one whose sources `check` judges. A machine whose
   system gives it another name than the one of the file is fixed in its
   `/etc/hosts`, or listed under the name it has.
+- **Two sources of two hosts that report the same object follow
+  `source_priority`**, as they do in one run: the object is the one of the
+  first of them in the list (the first by name when the list ranks neither),
+  and the run of the other only adds its tag to it. It is never rewritten
+  from one host to the other.
 - **Each host holds only the secrets of the sources it launches**, and
   `NETBOX_TOKEN`. A source left out of a run needs no secret; a selected one
   that misses a secret stops the run before anything is contacted.
