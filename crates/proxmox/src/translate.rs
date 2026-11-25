@@ -19,6 +19,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::IpAddr;
 
 use ipnet::IpNet;
+use omnisync_core::inventory::custom_fields;
 use omnisync_core::inventory::dns::Names;
 // The lookup is shared with the other hypervisor sources; it is named here as it always was.
 pub use omnisync_core::inventory::dns::{NoReverseDns, ReverseDns};
@@ -73,13 +74,6 @@ const MAX_NAME_LENGTH: usize = 64;
 
 const MIB: u64 = 1024 * 1024;
 const GIB: u64 = 1024 * MIB;
-
-/// The custom fields netbox-ssot defined and filled; they exist in a NetBox it ran on.
-const SOURCE_FIELD: &str = "source";
-const SOURCE_ID_FIELD: &str = "source_id";
-const HOST_CPU_CORES_FIELD: &str = "host_cpu_cores";
-const HOST_MEMORY_FIELD: &str = "host_memory";
-const ARP_ENTRY_FIELD: &str = "arp_entry";
 
 /// The status Proxmox gives a guest that does not run.
 const STOPPED: &str = "stopped";
@@ -580,7 +574,7 @@ impl Translator<'_> {
     }
 
     fn with_source(&self, object: Desired) -> Desired {
-        object.custom_field(SOURCE_FIELD, self.settings.source.as_str())
+        object.custom_field(&custom_fields::SOURCE, self.settings.source.as_str())
     }
 
     /// Declares the role of the settings, or the one netbox-ssot created
@@ -666,8 +660,8 @@ impl Translator<'_> {
             .field("name", name)
             .reference("role", Kind::Role, Identity::named(&role))
             .reference("cluster", Kind::Cluster, Identity::named(self.cluster))
-            .custom_field(HOST_CPU_CORES_FIELD, node.cpus.to_string())
-            .custom_field(HOST_MEMORY_FIELD, format!("{} GiB", node.memory_total_bytes / GIB));
+            .custom_field(&custom_fields::HOST_CPU_CORES, node.cpus.to_string())
+            .custom_field(&custom_fields::HOST_MEMORY, format!("{} GiB", node.memory_total_bytes / GIB));
         let device = self.with_source(self.with_tenant(self.with_site(device)));
         let device = self.reference_when_unset(device, "device_type", device_type);
         self.objects.push(device);
@@ -765,7 +759,7 @@ impl Translator<'_> {
             .guest_object(&identity, name, &vm.status, vm.cpus, vm.max_memory_bytes)
             .reference("device", Kind::Device, Identity::device(host))
             .reference("role", Kind::Role, Identity::named(&role))
-            .custom_field(SOURCE_ID_FIELD, vm.vmid.to_string());
+            .custom_field(&custom_fields::SOURCE_ID, vm.vmid.to_string());
         object = self.with_source(object);
         object = self.with_tags(object, &vm.tags);
 
@@ -798,7 +792,7 @@ impl Translator<'_> {
             .guest_object(&identity, name, &container.status, container.cpus, container.max_memory_bytes)
             .reference("device", Kind::Device, Identity::device(host))
             .reference("role", Kind::Role, Identity::named(&role))
-            .custom_field(SOURCE_ID_FIELD, container.vmid.to_string());
+            .custom_field(&custom_fields::SOURCE_ID, container.vmid.to_string());
         if container.max_disk_bytes / MIB > 0 {
             object = object.field("disk", container.max_disk_bytes / MIB);
         }
@@ -948,7 +942,7 @@ impl Translator<'_> {
             .field("address", text.as_str())
             .field("status", "active")
             .reference("assigned_object", Kind::VmInterface, interface_identity.clone())
-            .custom_field(ARP_ENTRY_FIELD, false);
+            .custom_field(&custom_fields::ARP_ENTRY, false);
         // A lookup that gives nothing, or a name NetBox would refuse, writes no name: NetBox keeps the one it has.
         if let Some(dns_name) = self.names.of(ip) {
             object = object.field("dns_name", dns_name);
@@ -1524,9 +1518,9 @@ mod tests {
             // proxmox_sync.go: for _, tag := range splitProxmoxTags(vm.Tags) — none here.
             .tags(Vec::<String>::new())
             // proxmox_sync.go: constants.CustomFieldSourceName: ps.SourceConfig.Name — CustomFieldSourceName = "source"
-            .custom_field("source", SOURCE)
+            .custom_field(&custom_fields::SOURCE, SOURCE)
             // proxmox_sync.go: constants.CustomFieldSourceIDName: fmt.Sprintf("%d", vm.VMID) — "source_id"
-            .custom_field("source_id", vmid.to_string())
+            .custom_field(&custom_fields::SOURCE_ID, vmid.to_string())
             // proxmox_sync.go, vmPlatformName: the agent of `vm()` is silent, so the platform is the one of its
             // ostype — proxmoxOSTypePlatformNames: "l26": "Other 2.6.x Linux (64-bit)" — and only fills an
             // empty field: "the platform NetBox has is kept when an agent reported it".
@@ -1636,7 +1630,7 @@ mod tests {
             .field("name", CLUSTER)
             .reference("type", Kind::ClusterType, Identity::named("Proxmox"))
             .reference("scope", Kind::Site, Identity::named(SITE))
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         assert_eq!(named(&objects, Kind::Cluster, CLUSTER), expected);
         assert_eq!(of_kind(&objects, Kind::Cluster).len(), 1);
     }
@@ -1862,13 +1856,13 @@ mod tests {
             .reference("cluster", Kind::Cluster, Identity::named(CLUSTER))
             // proxmox_sync.go: constants.CustomFieldHostCPUCoresName: fmt.Sprintf("%d", node.CPUInfo.CPUs) —
             //   "host_cpu_cores"
-            .custom_field("host_cpu_cores", "32")
+            .custom_field(&custom_fields::HOST_CPU_CORES, "32")
             // proxmox_sync.go: constants.CustomFieldHostMemoryName: fmt.Sprintf("%d GiB",
             //   node.Memory.Total/constants.GiB)
             //   — "host_memory"; 236538687488 / 1073741824 = 220.29…, an integer division.
-            .custom_field("host_memory", "220 GiB")
+            .custom_field(&custom_fields::HOST_MEMORY, "220 GiB")
             // add_items.go, AddDevice: addSourceNameCustomField
-            .custom_field("source", SOURCE)
+            .custom_field(&custom_fields::SOURCE, SOURCE)
             // add_items.go, AddDevice: "Allow manual override device type" — the generic type only fills an
             // empty field. constants.go: DefaultManufacturer, DefaultModel.
             .reference("device_type", Kind::DeviceType, Identity::device_type("Generic Manufacturer", "Generic Model"))
@@ -1933,7 +1927,7 @@ mod tests {
             .field("type", "bridge")
             .reference("device", Kind::Device, Identity::device("pve01"))
             // add_items.go, AddInterface: addSourceNameCustomField
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         assert_eq!(one(&objects, Kind::Interface, &identity), expected);
     }
 
@@ -2297,7 +2291,7 @@ mod tests {
             .field("name", "eth0")
             .reference("virtual_machine", Kind::VirtualMachine, vm_identity("web01"))
             .reference("primary_mac_address", Kind::MacAddress, mac_identity("BC:24:11:AA:BB:CC", "web01", "eth0"))
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         assert_eq!(one(&objects, Kind::VmInterface, &nic_identity("web01", "eth0")), interface);
 
         // proxmox_sync.go: vmIfaceMAC := strings.ToUpper(vmNetwork.HardwareAddress)
@@ -2318,8 +2312,8 @@ mod tests {
             .field("address", "10.0.0.5/24")
             .field("status", "active")
             .reference("assigned_object", Kind::VmInterface, nic_identity("web01", "eth0"))
-            .custom_field("arp_entry", false)
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::ARP_ENTRY, false)
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         let found = one(&objects, Kind::IpAddress, &address_identity("10.0.0.5/24"));
         assert_eq!(found, address);
         // An identity compares its key only: the table is "any" (the source knows no VRF).
@@ -2641,7 +2635,7 @@ mod tests {
         // add_items.go, AddPrefix: newPrefix.CustomFields[constants.CustomFieldSourceName] = source
         let expected = Desired::new(Kind::Prefix, Identity::prefix("10.0.0.0/24", VrfKey::Unknown), SOURCE)
             .field("prefix", "10.0.0.0/24")
-            .custom_field("source", SOURCE)
+            .custom_field(&custom_fields::SOURCE, SOURCE)
             .ensure_only();
         let found = of_kind(&objects, Kind::Prefix);
         assert_eq!(found.len(), 1);
@@ -2781,7 +2775,7 @@ mod tests {
             .field("size", 32_768)
             .field("description", "local-lvm:vm-101-disk-0")
             .reference("virtual_machine", Kind::VirtualMachine, vm_identity("web01"))
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         assert_eq!(one(&objects, Kind::VirtualDisk, &identity), expected);
     }
 
@@ -2887,8 +2881,8 @@ mod tests {
             .reference("primary_ip6", Kind::IpAddress, address_identity("2001:db8::10"))
             .tags(["service-dns"])
             // CustomFields: constants.CustomFieldSourceIDName: fmt.Sprintf("%d", container.VMID); AddVM adds "source".
-            .custom_field("source", SOURCE)
-            .custom_field("source_id", "200");
+            .custom_field(&custom_fields::SOURCE, SOURCE)
+            .custom_field(&custom_fields::SOURCE_ID, "200");
         // No platform: syncContainers sets none, and a nil platform is left as NetBox has it.
         assert_eq!(guest(&objects, "ct01"), cluster_reference(site_reference(expected)));
 
@@ -2900,8 +2894,8 @@ mod tests {
             .field("address", "192.0.2.10/24")
             .field("status", "active")
             .reference("assigned_object", Kind::VmInterface, nic_identity("ct01", "eth0"))
-            .custom_field("arp_entry", false)
-            .custom_field("source", SOURCE);
+            .custom_field(&custom_fields::ARP_ENTRY, false)
+            .custom_field(&custom_fields::SOURCE, SOURCE);
         assert_eq!(one(&objects, Kind::IpAddress, &address_identity("192.0.2.10")), inet);
         assert_eq!(
             one(&objects, Kind::IpAddress, &address_identity("2001:db8::10")).fields["address"],

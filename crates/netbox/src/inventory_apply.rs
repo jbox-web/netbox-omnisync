@@ -705,6 +705,10 @@ mod tests {
             json!({"address": "192.0.2.10/24", "vrf": vrf_id, "assigned_object_type": "dcim.interface",
                    "assigned_object_id": nic_id, "custom_fields": {"owner_team": "infra"}}),
         );
+        for name in ["owner_team", "uuid"] {
+            netbox
+                .add("extras.custom_fields", json!({"name": name, "type": "text", "object_types": ["ipam.ipaddress"]}));
+        }
         let sent = Sent::to(netbox);
         let users = Identity::vlan(VlanScope::Site("Lab"), 10);
         let voice = Identity::vlan(VlanScope::Site("Lab"), 20);
@@ -985,6 +989,10 @@ mod tests {
     async fn the_fields_a_dry_run_checks_are_those_the_writes_send() {
         let (netbox, _, _) = netbox();
         let cluster_id = netbox.add(CLUSTERS, json!({"name": "pve-lab"}));
+        netbox.add(
+            "extras.custom_fields",
+            json!({"name": "source", "type": "text", "object_types": ["virtualization.virtualmachine"]}),
+        );
         let eth0 = eth0_of(&web01());
         let address = Identity::ip_address("192.0.2.21/24", VrfKey::Unknown);
         let steps = vec![

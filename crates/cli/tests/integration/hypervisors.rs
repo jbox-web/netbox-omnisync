@@ -587,24 +587,117 @@ async fn a_selection_custom_field_of_someone_else_survives_a_write_of_the_manage
     unchanged(&sync("pve-lab", &netbox.client, lab(true)).await);
 }
 
+/// The type, the object types (sorted) and the default of the custom field `name`.
+async fn definition(netbox: &Netbox, name: &str) -> (String, Vec<String>, Value) {
+    let field = netbox.one("extras.custom_fields", [("name", name)]).await;
+    let mut types: Vec<String> = field["object_types"]
+        .as_array()
+        .expect("object types")
+        .iter()
+        .map(|held| held.as_str().unwrap().to_owned())
+        .collect();
+    types.sort();
+    (text(&field, "/type/value").to_owned(), types, field["default"].clone())
+}
+
+/// What the cluster `lab` writes `source` on: its cluster, its host and the
+/// cards of the host, its machines with their interfaces and disks, their
+/// addresses and the networks of these.
+const SOURCE_TYPES: [&str; 8] = [
+    "dcim.device",
+    "dcim.interface",
+    "ipam.ipaddress",
+    "ipam.prefix",
+    "virtualization.cluster",
+    "virtualization.virtualdisk",
+    "virtualization.virtualmachine",
+    "virtualization.vminterface",
+];
+
 /// On a NetBox netbox-ssot never ran on, the custom fields the translation
-/// fills (`source`, `source_id`, `host_cpu_cores`, `host_memory`, `arp_entry`)
-/// are not defined, and NetBox 4.5 to 4.7 refuse a write that carries one
-/// (`extras/api/customfields.py`). Whatever the tool does about it, it must not
-/// stop half way through its plan nor report a clean run that never converges:
-/// either it refuses before writing anything, naming the custom fields, or the
-/// next run finds nothing to do.
+/// fills are not defined, and NetBox 4.5 to 4.7 refuse a write that carries
+/// one (`extras/api/customfields.py`). The run creates them before its plan:
+/// each on the kinds of object it is written on, of the type of its values,
+/// and without a default.
 #[tokio::test]
 #[ignore = "needs the NetBox Docker stack: mise run dev:test-integration"]
-async fn a_netbox_without_the_custom_fields_is_refused_or_converges() {
+async fn a_netbox_without_the_custom_fields_gets_them_and_a_second_run_changes_nothing() {
     let netbox = Netbox::without_custom_fields().await;
     let first = sync("pve-lab", &netbox.client, lab(true)).await;
-    if !first.errors.is_empty() {
-        assert!(first.errors.iter().all(|error| error.contains("custom field")), "{:?}", first.errors);
-        assert_eq!(first.applied, 0);
-        return;
-    }
+    clean(&first);
+    let created: Vec<&str> = changed(&first, Action::Create)
+        .into_iter()
+        .filter(|(kind, _)| *kind == "custom_field")
+        .map(|(_, name)| name)
+        .collect();
+    assert_eq!(created, ["arp_entry", "host_cpu_cores", "host_memory", "source", "source_id"]);
+
+    let text_on =
+        |types: &[&str]| ("text".to_owned(), types.iter().map(|held| (*held).to_owned()).collect(), Value::Null);
+    assert_eq!(definition(&netbox, "source").await, text_on(&SOURCE_TYPES));
+    // The VMID of a machine: 101 for web01.
+    assert_eq!(definition(&netbox, "source_id").await, text_on(&["virtualization.virtualmachine"]));
+    assert_eq!(definition(&netbox, "host_cpu_cores").await, text_on(&["dcim.device"]));
+    assert_eq!(definition(&netbox, "host_memory").await, text_on(&["dcim.device"]));
+    assert_eq!(
+        definition(&netbox, "arp_entry").await,
+        ("boolean".to_owned(), vec!["ipam.ipaddress".to_owned()], Value::Null)
+    );
+    // The values are written, and a field is on no object it is not filled on.
+    let host = netbox.one("dcim.devices", [("name", "pve01")]).await;
+    assert_eq!(host["custom_fields"], json!({"source": "pve-lab", "host_cpu_cores": "16", "host_memory": "64 GiB"}));
+    let web = netbox.one("virtualization.virtual_machines", [("name", "web01")]).await;
+    assert_eq!(web["custom_fields"], json!({"source": "pve-lab", "source_id": "101"}));
+    let ip = netbox.one("ipam.ip_addresses", [("address", "192.0.2.10")]).await;
+    assert_eq!(ip["custom_fields"], json!({"source": "pve-lab", "arp_entry": false}));
+
     unchanged(&sync("pve-lab", &netbox.client, lab(true)).await);
+}
+
+/// A custom field somebody defined on other object types is given the ones
+/// the run writes it on: it keeps the types, the label and the description
+/// it had.
+#[tokio::test]
+#[ignore = "needs the NetBox Docker stack: mise run dev:test-integration"]
+async fn a_custom_field_that_lacks_an_object_type_is_extended_and_keeps_the_others() {
+    let netbox = Netbox::without_custom_fields().await;
+    let by_hand = json!({"name": "source", "label": "By hand", "description": "kept", "type": "text",
+                         "object_types": ["dcim.site", "dcim.device"]});
+    netbox.create("extras.custom_fields", by_hand).await;
+    let first = sync("pve-lab", &netbox.client, lab(true)).await;
+    clean(&first);
+    let updated: Vec<(&str, &str)> =
+        changed(&first, Action::Update).into_iter().filter(|(kind, _)| *kind == "custom_field").collect();
+    assert_eq!(updated, [("custom_field", "source")]);
+
+    let field = netbox.one("extras.custom_fields", [("name", "source")]).await;
+    assert_eq!((text(&field, "/label"), text(&field, "/description")), ("By hand", "kept"));
+    // `dcim.site` is nothing the tool fills: it stays.
+    let mut expected: Vec<String> = SOURCE_TYPES.iter().map(|held| (*held).to_owned()).collect();
+    expected.push("dcim.site".to_owned());
+    expected.sort();
+    assert_eq!(definition(&netbox, "source").await, ("text".to_owned(), expected, Value::Null));
+
+    unchanged(&sync("pve-lab", &netbox.client, lab(true)).await);
+}
+
+/// A custom field of another type cannot take what the tool writes: the run
+/// stops before any write, and never changes the type somebody chose.
+#[tokio::test]
+#[ignore = "needs the NetBox Docker stack: mise run dev:test-integration"]
+async fn a_custom_field_of_another_type_is_refused_and_nothing_is_written() {
+    let netbox = Netbox::without_custom_fields().await;
+    let by_hand = json!({"name": "source_id", "type": "integer", "object_types": ["virtualization.virtualmachine"]});
+    netbox.create("extras.custom_fields", by_hand).await;
+    let outcome = sync("pve-lab", &netbox.client, lab(true)).await;
+    assert_eq!(
+        outcome.errors,
+        ["custom field source_id is of type integer in NetBox, the tool writes text; nothing was written"]
+    );
+    assert_eq!((outcome.changes.as_slice(), outcome.applied), ([].as_slice(), 0));
+    assert_eq!(netbox.names("extras.custom_fields", []).await, ["source_id"]);
+    assert_eq!(netbox.names("virtualization.clusters", []).await, Vec::<String>::new());
+    assert_eq!(text(&netbox.one("extras.custom_fields", [("name", "source_id")]).await, "/type/value"), "integer");
 }
 
 /// The cluster `lab` as netbox-ssot, run with a source named `pve1`, left it

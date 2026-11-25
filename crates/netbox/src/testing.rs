@@ -6,6 +6,7 @@
 use std::collections::BTreeMap;
 use std::sync::{Mutex, MutexGuard, PoisonError};
 
+use omnisync_core::inventory::model::Kind;
 use omnisync_core::{Filters, Gateway, GatewayError, Row};
 use serde_json::Value;
 
@@ -28,6 +29,10 @@ struct Inner {
     // In dry run every write is refused; the attempts are kept, as (HTTP method, endpoint).
     refuse_writes: bool,
     refused: Vec<(&'static str, String)>,
+    // The most objects NetBox fills the default of a custom field on within
+    // the request (its BULK_UPDATE_CHUNK_SIZE): above, from 4.7, the field is
+    // taken offline. `None`: never, as before 4.7.
+    bulk_update_chunk: Option<usize>,
     next_id: u64,
     // What `/api/status/` gives as `netbox-version`: the fake behaves as 4.5 to 4.7.
     version: String,
@@ -81,6 +86,9 @@ fn terminations(cable: &Row, side: &str) -> Vec<(String, u64)> {
 }
 
 const SIDES: [&str; 2] = ["a_terminations", "b_terminations"];
+
+/// The endpoint of the custom field definitions.
+const CUSTOM_FIELDS: &str = "extras.custom_fields";
 
 /// A nested foreign key: (field, endpoint of the target, attribute shown).
 type Nested = (&'static str, &'static str, &'static str);
@@ -140,8 +148,9 @@ const NESTED: [(&str, &[Nested]); 7] = [
 
 /// The choice fields rendered as `{"value": …, "label": …}` when the record
 /// has them, by endpoint.
-const CHOICES: [(&str, &[&str]); 6] = [
+const CHOICES: [(&str, &[&str]); 7] = [
     ("dcim.devices", &["status"]),
+    ("extras.custom_fields", &["type", "status"]),
     ("dcim.interfaces", &["type", "mode"]),
     ("ipam.ip_addresses", &["status"]),
     ("virtualization.clusters", &["status"]),
@@ -218,11 +227,81 @@ impl Inner {
         Err(GatewayError::DryRun { method: method.to_owned(), endpoint: endpoint.to_owned() })
     }
 
+    /// The definition of the custom field `name`, when it is live.
+    fn live_custom_field(&self, name: &str) -> Option<&Row> {
+        let live = |record: &&Row| record.get("status").and_then(Value::as_str).is_none_or(|status| status == "active");
+        self.records(CUSTOM_FIELDS).filter(live).find(|record| record.get("name").and_then(Value::as_str) == Some(name))
+    }
+
+    // As NetBox (`extras/api/customfields.py`, 4.5 to 4.7): a custom field
+    // that is not defined for the type of the object, or that is not live,
+    // is refused with the write that carries it.
+    fn check_custom_fields(&self, endpoint: &str, payload: &Row) -> Result<(), GatewayError> {
+        let Some(kind) = Kind::ALL.into_iter().find(|kind| kind.endpoint() == endpoint) else {
+            return Ok(());
+        };
+        let Some(given) = payload.get("custom_fields").and_then(Value::as_object) else {
+            return Ok(());
+        };
+        for name in given.keys() {
+            let defined = self.live_custom_field(name).is_some_and(|definition| {
+                let types = definition.get("object_types").and_then(Value::as_array);
+                types.is_some_and(|types| types.iter().any(|held| held.as_str() == Some(kind.content_type())))
+            });
+            if !defined {
+                return Err(failure(format!("Custom field '{name}' does not exist for this object type.")));
+            }
+        }
+        Ok(())
+    }
+
+    // As NetBox: the name of a custom field is unique, a field that is not
+    // live cannot be modified, and from 4.7 a field with a default that is
+    // given object types holding more objects than one request fills is taken
+    // offline (`provisioning`) until a job has written the default on them.
+    fn check_definition(&self, endpoint: &str, id: Option<u64>, payload: &mut Row) -> Result<(), GatewayError> {
+        if endpoint != CUSTOM_FIELDS {
+            return Ok(());
+        }
+        let Some(id) = id else {
+            let name = payload.get("name");
+            if self.records(CUSTOM_FIELDS).any(|record| record.get("name") == name) {
+                return Err(failure("custom field with this name already exists."));
+            }
+            return Ok(());
+        };
+        let held = self.existing(CUSTOM_FIELDS, id)?;
+        let name = held.get("name").map(text).unwrap_or_default();
+        if held.get("status").and_then(Value::as_str).is_some_and(|status| status != "active") {
+            return Err(failure(format!(
+                "Custom field '{name}' cannot be modified while its stored data is being updated"
+            )));
+        }
+        let types = |row: &Row| -> Vec<String> {
+            let types = row.get("object_types").and_then(Value::as_array);
+            types.into_iter().flatten().filter_map(Value::as_str).map(str::to_owned).collect()
+        };
+        let before = types(held);
+        let filled: usize = types(payload)
+            .iter()
+            .filter(|added| !before.contains(added))
+            .filter_map(|added| Kind::from_content_type(added))
+            .map(|kind| self.records(kind.endpoint()).count())
+            .sum();
+        let has_default = held.get("default").is_some_and(|default| !default.is_null());
+        if has_default && self.bulk_update_chunk.is_some_and(|chunk| filled > chunk) {
+            payload.insert("status".to_owned(), Value::from("provisioning"));
+        }
+        Ok(())
+    }
+
     /// The payload as the fake stores it. As NetBox: `tags` names each tag by
     /// its id or by exact attributes (`{"name": …}`, `{"slug": …}`) and a tag
     /// that does not exist is refused; the custom fields given on an update
-    /// are merged into the ones the object has.
-    fn accepted(&self, payload: &Row, existing: Option<&Row>) -> Result<Row, GatewayError> {
+    /// are merged into the ones the object has, and one NetBox does not
+    /// define for the object is refused.
+    fn accepted(&self, endpoint: &str, payload: &Row, existing: Option<&Row>) -> Result<Row, GatewayError> {
+        self.check_custom_fields(endpoint, payload)?;
         let mut accepted = payload.clone();
         if let Some(tags) = payload.get("tags").and_then(Value::as_array) {
             let ids: Result<Vec<Value>, GatewayError> = tags.iter().map(|tag| self.tag_id(tag)).collect();
@@ -576,6 +655,7 @@ impl FakeGateway {
                 enforce_global_unique: true,
                 refuse_writes: false,
                 refused: Vec::new(),
+                bulk_update_chunk: None,
                 next_id: 1000,
                 version: "4.7.5".to_owned(),
             }),
@@ -622,6 +702,13 @@ impl FakeGateway {
     /// The writes accepted so far, in order.
     pub fn writes(&self) -> Vec<Write> {
         self.lock().writes.clone()
+    }
+
+    /// As NetBox from 4.7: the most objects the default of a custom field is
+    /// written on within the request that gives the field their type; above,
+    /// the field is taken offline. `None` (the default): never.
+    pub fn bulk_update_chunk(&self, chunk: Option<usize>) {
+        self.lock().bulk_update_chunk = chunk;
     }
 
     /// Fail the write that would make the number of writes exceed `limit`.
@@ -684,7 +771,9 @@ impl Gateway for FakeGateway {
         let mut inner = self.lock();
         inner.check_dry_run("POST", endpoint)?;
         inner.check_failure()?;
-        let payload = &inner.accepted(payload, None)?;
+        let payload = &mut inner.accepted(endpoint, payload, None)?;
+        inner.check_definition(endpoint, None, payload)?;
+        let payload = &*payload;
         inner.check_primary_mac(endpoint, None, payload)?;
         inner.check_primary_ip(endpoint, None, payload)?;
         match endpoint {
@@ -709,7 +798,8 @@ impl Gateway for FakeGateway {
         inner.check_dry_run("PATCH", endpoint)?;
         inner.check_failure()?;
         let mut updated = inner.existing(endpoint, id)?.clone();
-        let payload = inner.accepted(payload, Some(&updated))?;
+        let mut payload = inner.accepted(endpoint, payload, Some(&updated))?;
+        inner.check_definition(endpoint, Some(id), &mut payload)?;
         inner.check_primary_mac(endpoint, Some(id), &payload)?;
         inner.check_primary_ip(endpoint, Some(id), &payload)?;
         updated.extend(payload);
@@ -981,9 +1071,90 @@ mod tests {
         assert_eq!(bare.get("tags"), None);
     }
 
+    fn define(netbox: &FakeGateway, name: &str, types: &[&str]) -> u64 {
+        netbox.add("extras.custom_fields", json!({"name": name, "type": "text", "object_types": types}))
+    }
+
+    // NetBox 4.5 to 4.7, `extras/api/customfields.py`: "Custom field '{name}'
+    // does not exist for this object type."
+    #[tokio::test]
+    async fn a_custom_field_that_is_not_defined_for_the_object_is_refused_as_in_netbox() {
+        let netbox = FakeGateway::new();
+        define(&netbox, "uuid", &["dcim.platform"]);
+        let refused = Err(request("Custom field 'uuid' does not exist for this object type."));
+        let machine = row(json!({"name": "web01", "custom_fields": {"uuid": "42d0"}}));
+        // Defined, but for platforms.
+        assert_eq!(netbox.create("virtualization.virtual_machines", &machine).await, refused);
+        let vm = netbox.add("virtualization.virtual_machines", json!({"name": "web01"}));
+        let patch = row(json!({"custom_fields": {"uuid": "42d0"}}));
+        assert_eq!(
+            netbox.update("virtualization.virtual_machines", vm, &patch).await,
+            Err(request("Custom field 'uuid' does not exist for this object type."))
+        );
+        assert_eq!(netbox.writes(), []);
+        // Not defined at all.
+        let platform = row(json!({"name": "Debian 13", "custom_fields": {"owner_team": "web"}}));
+        assert_eq!(
+            netbox.create("dcim.platforms", &platform).await,
+            Err(request("Custom field 'owner_team' does not exist for this object type."))
+        );
+        // Defined for the object: taken.
+        let platform = row(json!({"name": "Debian 13", "custom_fields": {"uuid": "42d0"}}));
+        let created = netbox.create("dcim.platforms", &platform).await;
+        assert_eq!(created.map(|row| row["custom_fields"].clone()), Ok(json!({"uuid": "42d0"})));
+    }
+
+    #[tokio::test]
+    async fn a_second_custom_field_of_the_same_name_is_refused_as_in_netbox() {
+        let netbox = FakeGateway::new();
+        let field = row(json!({"name": "uuid", "type": "text", "object_types": ["dcim.device"]}));
+        let created = netbox.create("extras.custom_fields", &field).await.unwrap();
+        // The type is a choice, read as NetBox reads it.
+        assert_eq!(created["type"], json!({"value": "text", "label": "Text"}));
+        assert_eq!(
+            netbox.create("extras.custom_fields", &field).await,
+            Err(request("custom field with this name already exists."))
+        );
+    }
+
+    // NetBox 4.7, `extras/models/customfields.py`, `provision_data`: a field
+    // with a default given a type that holds more objects than one request
+    // fills goes `provisioning`; it is then refused on an object and cannot
+    // be modified.
+    #[tokio::test]
+    async fn a_field_with_a_default_given_a_large_type_is_taken_offline_as_in_netbox_4_7() {
+        let netbox = FakeGateway::new();
+        netbox.bulk_update_chunk(Some(1));
+        let field = netbox.add(
+            "extras.custom_fields",
+            json!({"name": "arp_entry", "type": "boolean", "default": false, "object_types": ["dcim.device"]}),
+        );
+        let plain = define(&netbox, "uuid", &["dcim.device"]);
+        for address in ["192.0.2.1/24", "192.0.2.2/24"] {
+            netbox.add("ipam.ip_addresses", json!({"address": address}));
+        }
+        let extended = row(json!({"object_types": ["dcim.device", "ipam.ipaddress"]}));
+        // Without a default there is nothing to fill: the field stays live.
+        netbox.update("extras.custom_fields", plain, &extended).await.unwrap();
+        assert_eq!(netbox.row("extras.custom_fields", plain).unwrap().get("status"), None);
+        netbox.update("extras.custom_fields", field, &extended).await.unwrap();
+        let listed = netbox.list("extras.custom_fields", &filters([("name", "arp_entry")])).await.unwrap();
+        assert_eq!(listed[0]["status"], json!({"value": "provisioning", "label": "Provisioning"}));
+        let address = row(json!({"address": "192.0.2.3/24", "custom_fields": {"arp_entry": false}}));
+        assert_eq!(
+            netbox.create("ipam.ip_addresses", &address).await,
+            Err(request("Custom field 'arp_entry' does not exist for this object type."))
+        );
+        assert_eq!(
+            netbox.update("extras.custom_fields", field, &extended).await,
+            Err(request("Custom field 'arp_entry' cannot be modified while its stored data is being updated"))
+        );
+    }
+
     #[tokio::test]
     async fn custom_fields_are_merged_on_update() {
         let netbox = FakeGateway::new();
+        define(&netbox, "uuid", &["virtualization.virtualmachine"]);
         let vm = netbox
             .add("virtualization.virtual_machines", json!({"name": "web01", "custom_fields": {"owner_team": "web"}}));
         let patch = row(json!({"custom_fields": {"uuid": "42d0"}}));

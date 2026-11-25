@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::IpAddr;
 
 use omnisync_core::change::Action;
+use omnisync_core::inventory::custom_fields;
 use omnisync_core::inventory::dns::{Asked, NoReverseDns, ReverseDns};
 use omnisync_core::inventory::model::{Desired, Identity, Kind, LEGACY_TAG_MARKERS, Target, VlanScope, VrfKey};
 use omnisync_core::inventory::reconcile::{Plan, Run, SourceFacts, SourceStatus, ownership_tags, reconcile};
@@ -422,8 +423,8 @@ async fn the_hosts_of_6_7() {
             // The `AssetTag` identifier is empty on the six hosts: no asset tag.
             .field("serial", serial)
             .reference("device_type", Kind::DeviceType, Identity::device_type("Dell", model))
-            .custom_field("host_cpu_cores", cores)
-            .custom_field("host_memory", memory)
+            .custom_field(&custom_fields::HOST_CPU_CORES, cores)
+            .custom_field(&custom_fields::HOST_MEMORY, memory)
             // vmk0 is on the port group `Management Network` on every host.
             .reference("primary_ip4", Kind::IpAddress, address(management))
             .only_when_empty("primary_ip4");
@@ -825,6 +826,20 @@ fn run() -> Run {
     }
 }
 
+/// A NetBox that defines the custom fields of a host as netbox-sync defined
+/// them (`docs/vmware-reference.md`, section 5): a run creates them when they
+/// are missing, before its plan; these tests write the plan alone.
+fn netbox_with_host_fields() -> FakeGateway {
+    let netbox = FakeGateway::new();
+    for (name, label) in [("host_cpu_cores", "Physical CPU Cores"), ("host_memory", "Memory")] {
+        netbox.add(
+            "extras.custom_fields",
+            json!({"name": name, "label": label, "type": "text", "object_types": ["dcim.device"]}),
+        );
+    }
+    netbox
+}
+
 /// Loads NetBox, compares it with what the vCenter asks for, and writes.
 async fn synced(netbox: &FakeGateway, translation: &Translation) -> Plan {
     let kinds: BTreeSet<Kind> = Kind::ALL.into();
@@ -842,8 +857,7 @@ async fn synced(netbox: &FakeGateway, translation: &Translation) -> Plan {
 #[tokio::test]
 async fn the_6_7_vcenter_is_created_once_and_a_second_run_writes_nothing() {
     let translation = translated(&production()).await;
-    let netbox = FakeGateway::new();
-    // The custom fields of the hosts are netbox-sync's: they exist in a NetBox it ran on.
+    let netbox = netbox_with_host_fields();
     let first = synced(&netbox, &translation).await;
     assert_eq!(first.warnings, Vec::<String>::new());
     let created = first.steps.iter().filter(|step| step.change.action == Action::Create).count();
@@ -871,7 +885,7 @@ struct Legacy {
 }
 
 fn legacy_netbox() -> Legacy {
-    let netbox = FakeGateway::new();
+    let netbox = netbox_with_host_fields();
     let synced_tag = netbox.add(
         "extras.tags",
         json!({"name": "NetBox-synced", "slug": "netbox-synced", "description": "Created and used by NetBox Sync \
@@ -1162,7 +1176,7 @@ async fn a_lookup_that_gives_no_name_never_clears_the_one_netbox_holds() {
 async fn a_second_run_with_the_same_names_writes_nothing() {
     let names = resolved([("198.18.0.36", "ESX04.Lab.Example."), ("198.18.2.160", "vm076.lab.example.")]);
     let translation = named(&names).await;
-    let netbox = FakeGateway::new();
+    let netbox = netbox_with_host_fields();
     synced(&netbox, &translation).await;
     let id = netbox.find("ipam.ip_addresses", "address", &json!("198.18.2.160/24")).expect("the address of vm076");
     assert_eq!(netbox.row("ipam.ip_addresses", id).unwrap()["dns_name"], json!("vm076.lab.example"));

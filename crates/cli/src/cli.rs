@@ -3144,10 +3144,6 @@ mod tests {
         let server = vcenter::vcenter("6.7").await;
         let bench = Bench::new(&format!("{CONFIG}{}", vcenter_entry(server.address().port()))).with(&VCENTER_ENV);
         let backend = Vsphere { lab: Lab::new("SN1"), vcenter: server.uri() };
-        // The custom fields a host fills, defined as the tools before this one defined them.
-        for name in ["host_cpu_cores", "host_memory"] {
-            backend.lab.netbox.add("extras.custom_fields", json!({"name": name, "object_types": ["dcim.device"]}));
-        }
         let ran = bench.run(&backend, &["--type", "vmware"]).await;
         // The two homonyms left out are warnings, not errors.
         assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
@@ -3203,9 +3199,6 @@ mod tests {
         let server = vcenter::vcenter("6.7").await;
         let bench = Bench::new(&format!("{CONFIG}{}", vcenter_entry(server.address().port()))).with(&VCENTER_ENV);
         let backend = Vsphere { lab: Lab::new("SN1"), vcenter: server.uri() };
-        for name in ["host_cpu_cores", "host_memory"] {
-            backend.lab.netbox.add("extras.custom_fields", json!({"name": name, "object_types": ["dcim.device"]}));
-        }
         let ran = bench.run(&backend, &["--kind", "hypervisor", "--dry-run"]).await;
         assert!(ran.code == 0 || ran.code == 2, "{}{}", ran.stdout, ran.stderr);
         assert_eq!(hints_asked(&server).await, 0);
@@ -3268,11 +3261,6 @@ mod tests {
         /// A room around a hypervisor and BMCs that are already served.
         fn around(hypervisor: MockServer, bmcs: Vec<(&'static str, MockServer)>) -> Self {
             let lab = Lab::new("SN1");
-            // The custom fields the hypervisor sources fill, defined as the tools before this one did.
-            let everywhere: Vec<&str> = Kind::ALL.into_iter().map(Kind::content_type).collect();
-            for name in ["source", "source_id", "host_cpu_cores", "host_memory", "arp_entry"] {
-                lab.netbox.add("extras.custom_fields", json!({"name": name, "object_types": everywhere}));
-            }
             ServerRoom { lab, hypervisor, bmcs }
         }
 
@@ -3559,6 +3547,22 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn a_run_of_the_bmcs_alone_creates_no_custom_field() {
+        let room = ServerRoom::new([("drac-pve01.lab01", "idrac8-2.83.83.83")]).await;
+        // NIC.Embedded.1-1-1 of the BMC: "MACAddress": "02:00:00:00:00:09"; documented by hand on the server.
+        room.add_server("pve01.lab01", "By hand", "", "02:00:00:00:00:09");
+        let bench = room.bench("", &["pve01.lab01"]);
+        let ran = bench.run(&room, &["--kind", "bmc"]).await;
+        assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
+        // The BMC completed its device: "Model": "PowerEdge FC430", "SKU": "8RQZLZ7".
+        assert_eq!(room.hardware("pve01.lab01"), ("PowerEdge FC430".to_owned(), "8RQZLZ7".to_owned()));
+        // A BMC fills no custom field: none is defined for it.
+        for name in ["source", "source_id", "host_cpu_cores", "host_memory", "arp_entry"] {
+            assert!(room.lab.netbox.find("extras.custom_fields", "name", &json!(name)).is_none(), "{name}");
+        }
+    }
+
+    #[tokio::test]
     async fn only_a_run_that_asks_for_the_bmcs_reads_them() {
         let room = ServerRoom::new([("drac-pve01.lab01", "idrac8-2.83.83.83")]).await;
         let bench = room.bench("", &["pve01.lab01"]);
@@ -3659,9 +3663,6 @@ mod tests {
         );
         let bench = Bench::new(&format!("{CONFIG}{entry}")).with(&VCENTER_ENV);
         let backend = Vsphere { lab: Lab::new("SN1"), vcenter: server.uri() };
-        for name in ["host_cpu_cores", "host_memory"] {
-            backend.lab.netbox.add("extras.custom_fields", json!({"name": name, "object_types": ["dcim.device"]}));
-        }
         let ran = bench.run(&backend, &["--type", "vmware"]).await;
         assert_eq!(ran.code, 0, "{}{}", ran.stdout, ran.stderr);
         // No lookup failed: an address without record is an answer.
@@ -3701,9 +3702,6 @@ mod tests {
         );
         let bench = Bench::new(&format!("{CONFIG}{entry}")).with(&VCENTER_ENV);
         let backend = Vsphere { lab: Lab::new("SN1"), vcenter: server.uri() };
-        for name in ["host_cpu_cores", "host_memory"] {
-            backend.lab.netbox.add("extras.custom_fields", json!({"name": name, "object_types": ["dcim.device"]}));
-        }
         let started = std::time::Instant::now();
         let ran = bench.run(&backend, &["--type", "vmware"]).await;
         // The run succeeds, and the dead resolver cost its budget at most (15 s, and the lookups then in flight).

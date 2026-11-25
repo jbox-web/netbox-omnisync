@@ -322,6 +322,63 @@ a state that is wanted
 and `two_hosts_that_report_the_same_object_never_write_it_back_and_forth` in
 `crates/cli/src/cli.rs`).
 
+### Custom fields
+
+`crates/core/src/inventory/custom_fields.rs`. The hypervisor sources fill five
+custom fields: `source`, `source_id`, `host_cpu_cores`, `host_memory` and
+`arp_entry`. NetBox refuses a write that carries a custom field it does not
+define for the type of the object (`extras/api/customfields.py`, 4.5 to 4.7),
+so the run defines what is missing **before its plan**.
+
+- **One catalogue.** The five definitions (name, type, label, description, as
+  netbox-ssot named them) are shared by every source, as the hardware names
+  are: `Desired::custom_field` takes a definition, not a name, and a field
+  the plan writes that the catalogue does not have stops the run before any
+  write.
+- **What is asked for is what is written.** The fields, and the kinds of
+  object each is needed on, are read from the writes of the plan
+  (`custom_fields::used`), not from what the sources report: a field nothing
+  writes (the memory of a host of a source that creates no device) is neither
+  created nor given an object type.
+- **A missing field is created** on these kinds, with its type, its label and
+  its description, and **without a default**. NetBox writes a default on
+  every existing object of the types of the field, whoever owns them; and
+  from 4.7 (`provision_data`) it takes the field offline (`provisioning`)
+  while a job does so on a large table, during which a write that carries the
+  field is refused. The tool writes its values itself.
+- **An existing field is only ever given object types**: the ones NetBox has,
+  in their order, then the missing ones. Its label, description, type and
+  default are whoever's defined it (netbox-ssot, netbox-sync, somebody), and
+  no object type is ever taken off: NetBox would erase the values of the
+  field on it. A default it was defined with is NetBox's to apply: given a
+  type, the field gets that default on every object of the type, those of
+  somebody else included, and the report says which field was extended.
+- **A field that cannot be used stops the run before any write**: one of
+  another type, one whose type cannot be read, one that is not `active`
+  (4.7), one the plan writes and the catalogue does not have.
+
+The definitions are written before the first step of the plan, and a refusal
+of NetBox (a token that may not add a custom field) stops the run there. A dry
+run reports them as changes of kind `custom_field`, checks their fields
+against the schema as it does for the plan, and sends nothing. A real run
+reports the definitions it wrote: one another run defined meanwhile is not
+among them.
+
+NetBox replaces the object types of a field with the list it is given. The
+definitions are therefore **read again before each write**, so that a type
+another run has just added is kept; and **once more before the plan**, which
+does not start unless every field it writes is defined, on its kinds, and
+live. That last read is what catches a field somebody defined with a default
+(the `arp_entry` of netbox-ssot) that NetBox 4.7 took offline when it was
+given a type: the run fails, saying so, and the next one goes through.
+
+What remains possible when two hosts run at the same instant on a NetBox that
+lacks the fields: both create the same field, and NetBox refuses the second
+(the name is unique), whose run fails once; or both extend the same field
+within one request of one another, and the second list drops the type the
+first added. The values lost are the tool's own: the next run of the first
+host gives the type back and writes them again.
+
 ### Completing an object
 
 A hypervisor does not always know the hardware it runs on; the BMC of the
@@ -903,6 +960,8 @@ What one failure stops, and what goes on.
 | A BMC of a `bmc` source cannot be read | That BMC: nothing is written for its device, nothing NetBox holds for it is cleared | The other BMCs of the source, the other sources |
 | A BMC does not prove it manages its device (no shared MAC address), or its device is not in NetBox | Nothing: a warning, and nothing is written for that device | Everything else |
 | NetBox cannot be loaded for the hypervisors | The hypervisor part | The network part |
+| A custom field the plan writes has another type in NetBox, or is not live | The hypervisor part, before any write | The network part |
+| A custom field cannot be created or extended, or NetBox takes it offline once extended | The hypervisor plan, before its first step (the definitions written stay) | The network part |
 | A write of the hypervisor plan fails | Every step after it (they may depend on it) | The network part |
 | A network source fails its collection or its NetBox read (a missing VRF or device included) | That source | The other sources |
 | The VLAN step fails for a site | The network run: the device writes point at these VLANs | — |

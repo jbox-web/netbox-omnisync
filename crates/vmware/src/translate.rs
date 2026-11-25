@@ -26,6 +26,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::net::{IpAddr, Ipv4Addr};
 
 use ipnet::IpNet;
+use omnisync_core::inventory::custom_fields;
 use omnisync_core::inventory::dns::{Names, ReverseDns};
 use omnisync_core::inventory::hardware::{format_slug, manufacturer_name};
 use omnisync_core::inventory::model::{Desired, Identity, Kind, Target, VlanScope, VrfKey};
@@ -59,11 +60,6 @@ const MAX_NAME: usize = 64;
 const MAX_LONG_NAME: usize = 100;
 const MAX_DESCRIPTION: usize = 200;
 const MAX_SERIAL: usize = 50;
-
-/// The custom fields netbox-sync defined on devices and filled; they exist in
-/// a NetBox it ran on.
-const HOST_CPU_CORES_FIELD: &str = "host_cpu_cores";
-const HOST_MEMORY_FIELD: &str = "host_memory";
 
 /// The states vCenter gives a host that answers and a machine that runs.
 const CONNECTED: &str = "connected";
@@ -578,10 +574,10 @@ impl<'a> Translator<'a> {
             device = device.reference("platform", Kind::Platform, Identity::named(&platform));
         }
         if let Some((cores, model)) = host.cpu_cores.zip(host.cpu_model.as_deref()) {
-            device = device.custom_field(HOST_CPU_CORES_FIELD, format!("{cores} {model}"));
+            device = device.custom_field(&custom_fields::HOST_CPU_CORES, format!("{cores} {model}"));
         }
         if let Some(bytes) = host.memory_bytes {
-            device = device.custom_field(HOST_MEMORY_FIELD, host_memory(bytes));
+            device = device.custom_field(&custom_fields::HOST_MEMORY, host_memory(bytes));
         }
 
         let mut network = Network::default();
