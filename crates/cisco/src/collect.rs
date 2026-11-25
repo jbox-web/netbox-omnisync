@@ -4,7 +4,9 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 
-use omnisync_core::network::descriptions::neighbors_from_descriptions;
+use omnisync_core::network::descriptions::{
+    neighbors_from_descriptions, vlans_against_descriptions, vlans_from_descriptions,
+};
 use omnisync_core::network::inventory::Source;
 use omnisync_core::network::model::{DeviceState, Dot1q, Interface};
 
@@ -32,7 +34,25 @@ pub fn collect_report(source: &Source) -> Result<DeviceState, CollectionError> {
     if report.hostname.to_lowercase() != short_name.to_lowercase() {
         return Err(failed(format!("hostname {}, not {}", report.hostname, source.name)));
     }
-    Ok(add_description_neighbors(source, report.state))
+    Ok(add_descriptions(source, report.state))
+}
+
+/// Add what the port descriptions tell: the neighbours, and the VLANs.
+///
+/// The VLANs complete a switch known by a report, which does not list those a
+/// trunk allows. A switch whose configuration was read is believed: its
+/// descriptions are only compared, and a difference is a warning.
+pub fn add_descriptions(source: &Source, state: DeviceState) -> DeviceState {
+    let mut state = add_description_neighbors(source, state);
+    if let Some(pattern) = &source.neighbor_pattern {
+        let warnings = if source.report.is_some() {
+            vlans_from_descriptions(&mut state.interfaces, pattern)
+        } else {
+            vlans_against_descriptions(&state.interfaces, pattern, &state.vlans.keys().copied().collect())
+        };
+        state.warnings.extend(warnings);
+    }
+    state
 }
 
 /// Add the neighbours the port descriptions tell, on the ports LLDP and CDP leave
@@ -315,6 +335,205 @@ mod tests {
         // 138 switchport ports and 3 SVIs.
         assert_eq!(state.interfaces.len(), 141);
         assert_eq!(state.neighbors, []);
+    }
+
+    /// Reads the host of a Proxmox node and its port, and the VLANs of a `V:` pair wherever it is.
+    fn vlan_pattern() -> Regex {
+        Regex::new(r"(?i)(?:\b(?P<host>lab1-pve\d+)(?:[\s_-]+(?P<port>[a-z0-9]+))?.*?)??\bV:(?P<vlans>[0-9,-]+)")
+            .expect("valid pattern")
+    }
+
+    #[test]
+    fn the_vlans_of_a_report_come_from_its_columns_and_from_its_descriptions() {
+        let source = Source {
+            neighbor_pattern: Some(vlan_pattern()),
+            ..report_source("fplab1-sw001", fixture_path("fplab1-sw001.html"))
+        };
+        let state = collect_report(&source).expect("the fixture parses");
+        // `TenGigabitEthernet1/1/8 | Yes | description CTA/CTB/LE-143095 V:4-6,10-12,14-19,952 | 2 | Trunk`
+        // and `TenGigabitEthernet2/1/8 | Yes | CTA/CTB/LE-143135 V:4-6,10-12,14-19,952 | 2 | Trunk` are the
+        // two trunks of the report whose description has a list.
+        let listed: Vec<&str> = state
+            .interfaces
+            .values()
+            .filter(|interface| interface.dot1q.as_ref().is_some_and(|dot1q| dot1q.mode == Mode::Tagged))
+            .filter(|interface| interface.tagged_vlans_managed)
+            .map(|interface| interface.name.as_str())
+            .collect();
+        assert_eq!(listed, ["TenGigabitEthernet1/1/8", "TenGigabitEthernet2/1/8"]);
+        let trunk = &state.interfaces["TenGigabitEthernet1/1/8"];
+        assert_eq!(
+            trunk.dot1q,
+            Some(Dot1q {
+                mode: Mode::Tagged,
+                untagged_vlan: None,
+                tagged_vlans: vec![4, 5, 6, 10, 11, 12, 14, 15, 16, 17, 18, 19, 952]
+            })
+        );
+        assert!(!trunk.untagged_vlan_managed);
+        // `TenGigabitEthernet1/0/40 | Yes | N:lab1-pve01 enp129s0 10G Vlan 10-11-12 | 2 | Trunk`: the former
+        // form is not a list, the trunk keeps the VLANs NetBox has.
+        assert!(!state.interfaces["TenGigabitEthernet1/0/40"].tagged_vlans_managed);
+        // `Port-channel24 | Yes | LAB1-PRE01 ETH0-ETH1 T:HOU V:12 | 12 | Access`: every access port whose
+        // description has a `V:` says the VLAN of the report.
+        assert_eq!(state.interfaces["Port-channel24"].dot1q, Some(dot1q(Mode::Access, 12)));
+        assert_eq!(state.warnings, [] as [&str; 0]);
+    }
+
+    /// The pattern the README gives for the convention it recommends.
+    fn convention() -> Regex {
+        Regex::new(concat!(
+            r"(?i)^(?:\[No Monitor\]\s+)?(?:(?:i?drac|ilo)[-\s]+)?",
+            r"(?:(?P<host>[a-z0-9][a-z0-9.-]*)(?:/(?P<port>\S+?))?(?:/\d+[MG])?(?:\s+|$))?",
+            r"(?:.*?\bV:(?P<vlans>\S+))?",
+        ))
+        .expect("valid pattern")
+    }
+
+    // fplab1-sw001-convention.html is the stack of fplab1-sw001.html once its descriptions were rewritten.
+    #[test]
+    fn a_report_whose_descriptions_follow_the_convention_gives_the_vlans_of_its_trunks() {
+        let source = Source {
+            neighbor_pattern: Some(convention()),
+            ..report_source("fplab1-sw001", fixture_path("fplab1-sw001-convention.html"))
+        };
+        let state = collect_report(&source).expect("the fixture parses");
+        let vlans = |name: &str| {
+            let port = &state.interfaces[name];
+            let dot1q = port.dot1q.as_ref().expect("a mode");
+            (dot1q.mode, port.tagged_vlans_managed.then(|| dot1q.tagged_vlans.clone()))
+        };
+        // `TenGigabitEthernet1/0/40 | Yes | lab1-pve01.prod/enp129s0/10G V:10-12 | 2 | Trunk`
+        assert_eq!(vlans("TenGigabitEthernet1/0/40"), (Mode::Tagged, Some(vec![10, 11, 12])));
+        // `Port-channel40 | Yes | lab1-pve01.prod/bond0/10G V:10-12 | 2 | Trunk`
+        assert_eq!(vlans("Port-channel40"), (Mode::Tagged, Some(vec![10, 11, 12])));
+        // `GigabitEthernet1/0/5 | Yes | lab1-rt02.prod/GigabitEthernet0/0 V:952,954,1511 D:Interco-Directe | 2 | Trunk`
+        assert_eq!(vlans("GigabitEthernet1/0/5"), (Mode::Tagged, Some(vec![952, 954, 1511])));
+        // `GigabitEthernet2/0/6 | Yes | [No Monitor] lab1-fw01.prod/wan2/1G D:sans V:954 T:HST
+        // IP:192.0.2.8/255.255.255.240 | 2 | Trunk`
+        assert_eq!(vlans("GigabitEthernet2/0/6"), (Mode::Tagged, Some(vec![954])));
+        // `TenGigabitEthernet1/1/8 | Yes | N:CIRCUIT CTA/CTB/LE-143095 V:4-7,10-12,14-22,24-27,952,954 | 2 | Trunk`
+        let circuit = vec![4, 5, 6, 7, 10, 11, 12, 14, 15, 16, 17, 18, 19, 20, 21, 22, 24, 25, 26, 27, 952, 954];
+        assert_eq!(vlans("TenGigabitEthernet1/1/8"), (Mode::Tagged, Some(circuit)));
+        // `Port-channel18 | Yes | [No Monitor] lab1-c190-01.prod/a0a/10G V:all | 2 | Trunk`
+        assert_eq!(vlans("Port-channel18"), (Mode::TaggedAll, Some(vec![])));
+        // `Port-channel56 | Yes | CTA/CTB/LE-143095 - CTA/CTB/LE-143135 | 2 | Trunk`: no list.
+        assert_eq!(vlans("Port-channel56"), (Mode::Tagged, None));
+        // `Port-channel25 | No | N:Unused-Interface | 2 | Trunk`: an unused trunk.
+        assert_eq!(vlans("Port-channel25"), (Mode::Tagged, None));
+        // Of the 64 trunks of the report, 46 have a list in their description and 6 say `all`.
+        let trunks =
+            || state.interfaces.values().filter(|port| port.dot1q.as_ref().is_some_and(|d| d.mode != Mode::Access));
+        assert_eq!(trunks().count(), 64);
+        assert_eq!(trunks().filter(|port| port.tagged_vlans_managed).count(), 52);
+        assert_eq!(trunks().filter(|port| port.dot1q.as_ref().is_some_and(|d| d.mode == Mode::TaggedAll)).count(), 6);
+        // `Port-channel24 | Yes | lab1-pre01.prod/bond0/1G T:HOU V:12 | 12 | Access`: the 23 access ports
+        // whose description has a `V:` say the VLAN of their column, so nothing is warned about.
+        assert_eq!(state.interfaces["Port-channel24"].dot1q, Some(dot1q(Mode::Access, 12)));
+        assert_eq!(state.warnings, [] as [&str; 0]);
+        // The same pattern still tells the cables:
+        // `GigabitEthernet1/0/27 | Yes | [No Monitor] drac-lab1-pve01.prod V:18 | 18 | Access`.
+        let neighbor = |local: &str| state.neighbors.iter().find(|neighbor| neighbor.local_interface == local);
+        let told = |local: &str| neighbor(local).map(|n| (n.remote_device.as_str(), n.remote_interface.as_deref()));
+        assert_eq!(told("TenGigabitEthernet1/0/40"), Some(("lab1-pve01.prod", Some("enp129s0"))));
+        assert_eq!(told("GigabitEthernet1/0/27"), Some(("lab1-pve01.prod", Some("<management>"))));
+        assert_eq!(told("GigabitEthernet1/0/5"), Some(("lab1-rt02.prod", Some("gigabitethernet0/0"))));
+        // A description that names no host gives no neighbour, and a port-channel never does.
+        assert_eq!(told("TenGigabitEthernet1/1/8"), None);
+        assert_eq!(told("Port-channel40"), None);
+    }
+
+    #[test]
+    fn a_malformed_list_is_never_read_in_part_by_the_pattern_of_the_convention() {
+        let source = Source { neighbor_pattern: Some(convention()), ..report_source("sw1", "sw1.html".into()) };
+        let trunk = |name: &str, description: &str| Interface {
+            description: Some(description.to_owned()),
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: None, tagged_vlans: Vec::new() }),
+            untagged_vlan_managed: false,
+            tagged_vlans_managed: false,
+            ..Interface::new(name, true)
+        };
+        let ports = [
+            trunk("Te1/0/1", "lab1-esx01.prod/vmnic0/10G V:10-12x"),
+            trunk("Te1/0/2", "lab1-esx02.prod/vmnic0 V:allx"),
+        ];
+        let interfaces = ports.iter().cloned().map(|port| (port.name.clone(), port)).collect();
+        let state = add_descriptions(&source, DeviceState { interfaces, ..DeviceState::default() });
+        assert_eq!(state.interfaces.values().cloned().collect::<Vec<_>>(), ports);
+        assert_eq!(
+            state.warnings,
+            [
+                "Te1/0/1: the VLANs of its description cannot be read (invalid VLAN list item '10-12x'); the tagged \
+                 VLANs NetBox has are left as they are",
+                "Te1/0/2: the VLANs of its description cannot be read (invalid VLAN list item 'allx'); the tagged \
+                 VLANs NetBox has are left as they are",
+            ]
+        );
+    }
+
+    #[test]
+    fn a_report_without_pattern_takes_its_vlans_from_its_columns_alone() {
+        let state = collect_report(&report_source("fplab1-sw001", fixture_path("fplab1-sw001.html")))
+            .expect("the fixture parses");
+        assert!(!state.interfaces["TenGigabitEthernet1/1/8"].tagged_vlans_managed);
+        assert_eq!(state.interfaces["Port-channel24"].dot1q, Some(dot1q(Mode::Access, 12)));
+    }
+
+    #[test]
+    fn a_port_whose_neighbour_is_announced_keeps_the_vlans_of_its_description() {
+        let source = Source { neighbor_pattern: Some(vlan_pattern()), ..report_source("sw1", "sw1.html".into()) };
+        let trunk = Interface {
+            description: Some("lab1-pve01 eno1 V:10-12".to_owned()),
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: None, tagged_vlans: Vec::new() }),
+            untagged_vlan_managed: false,
+            tagged_vlans_managed: false,
+            ..Interface::new("Te1/0/1", true)
+        };
+        let announced = Neighbor {
+            local_interface: "Te1/0/1".to_owned(),
+            remote_device: "lab1-pve01.prod".to_owned(),
+            remote_interface: Some("eno1".to_owned()),
+            protocol: "lldp".to_owned(),
+        };
+        let state = DeviceState {
+            interfaces: BTreeMap::from([("Te1/0/1".to_owned(), trunk)]),
+            neighbors: vec![announced.clone()],
+            ..DeviceState::default()
+        };
+        let state = add_descriptions(&source, state);
+        // The description gives no second neighbour, and still its VLANs.
+        assert_eq!(state.neighbors, [announced]);
+        assert_eq!(
+            state.interfaces["Te1/0/1"].dot1q.as_ref().map(|dot1q| dot1q.tagged_vlans.clone()),
+            Some(vec![10, 11, 12])
+        );
+        assert!(state.interfaces["Te1/0/1"].tagged_vlans_managed);
+    }
+
+    #[test]
+    fn the_configuration_of_a_switch_read_over_ssh_is_believed_and_its_description_compared() {
+        let source = Source {
+            neighbor_pattern: Some(vlan_pattern()),
+            ..Source::new("nexus01.lab01", Kind::Switch, "nxos", "192.0.2.239")
+        };
+        let trunk = Interface {
+            description: Some("lab1-pve01 eno1 V:10-12".to_owned()),
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: Some(1), tagged_vlans: vec![10, 11] }),
+            ..Interface::new("Ethernet1/1", true)
+        };
+        let state = DeviceState {
+            interfaces: BTreeMap::from([("Ethernet1/1".to_owned(), trunk.clone())]),
+            // The switch defines VLAN 12, which the port does not allow.
+            vlans: [1, 10, 11, 12].into_iter().map(|vid| (vid, format!("VLAN{vid:04}"))).collect(),
+            ..DeviceState::default()
+        };
+        let state = add_descriptions(&source, state);
+        assert_eq!(state.interfaces["Ethernet1/1"], trunk);
+        assert_eq!(
+            state.warnings,
+            ["Ethernet1/1: its description says VLAN 10-12, its configuration says 10-11; the configuration is \
+                 believed"]
+        );
     }
 
     #[test]

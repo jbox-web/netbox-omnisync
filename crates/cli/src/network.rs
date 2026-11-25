@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicU64, AtomicUsize, Ordering};
 
 use futures::future::join_all;
 use futures::stream::{self, StreamExt};
-use omnisync_cisco::collect::{add_description_neighbors, collect_report};
+use omnisync_cisco::collect::{add_descriptions, collect_report};
 use omnisync_cisco::runner::CommandRunner;
 use omnisync_core::change::{Action, Change};
 use omnisync_core::inventory::model::VlanGroups;
@@ -22,13 +22,16 @@ use omnisync_core::network::cables::{
 use omnisync_core::network::collect::CollectionError;
 use omnisync_core::network::descriptions::{PROTOCOL as DESCRIPTION, neighbors_from_descriptions};
 use omnisync_core::network::diff::diff_device;
+use omnisync_core::network::dot1q::vlan_list;
 use omnisync_core::network::hosts::{Heard, HeardContext, merge_heard};
 use omnisync_core::network::inventory::{API_TYPES, Inventory, REPORT_TYPES, Source};
 use omnisync_core::network::model::{DeviceState, Neighbor};
 use omnisync_core::network::names::interface_key;
 use omnisync_core::network::stack::{DesiredDevice, desired_devices};
 use omnisync_core::network::state::NbDevice;
-use omnisync_core::network::vlans::{VlanHome, diff_vlans, mark_foreign_vlans};
+use omnisync_core::network::vlans::{
+    VlanHome, diff_vlans, leave_out_missing_vlans, mark_foreign_vlans, settle_native_vlans,
+};
 use omnisync_core::progress::Progress;
 use omnisync_core::{Filters, Gateway, GatewayError, Outcome, Row, Write};
 use omnisync_fortios::collect::Fetcher;
@@ -417,7 +420,7 @@ async fn collect_one<C: Collector>(
         return state;
     }
     let log = CommandLog { lane: &source.name, tracker, ran: AtomicUsize::new(0) };
-    let state = collector.collect(source, &log).await.map(|state| add_description_neighbors(source, state));
+    let state = collector.collect(source, &log).await.map(|state| add_descriptions(source, state));
     // The commands a failed source did not reach still count as done.
     tracker.advance(count.saturating_sub(units(log.ran.load(Ordering::Relaxed))), None);
     tracker.lane_end(&source.name);
@@ -797,6 +800,10 @@ async fn sync<G: Gateway, C: Collector>(
             None => {}
         }
     }
+    // What the collection of each source says of what it read, under its name.
+    for (source, state) in &collected {
+        outcome.warnings.extend(state.warnings.iter().map(|warning| format!("{}: {warning}", source.name)));
+    }
 
     // Where the VLANs of each site are kept: at the site, or in the VLAN group
     // the configuration puts it in. A group NetBox does not hold drops the
@@ -806,6 +813,12 @@ async fn sync<G: Gateway, C: Collector>(
         fail(outcome, tracker, failure);
     }
     applier.set_vlan_homes(homes.clone());
+    // The untagged VLAN NetBox holds on a trunk whose source does not tell its
+    // native one, read before the VLAN step hides the number of a VLAN of the
+    // site that joined a group.
+    for (device, snapshot) in targets.iter_mut().flat_map(|target| target.devices.iter_mut()) {
+        settle_native_vlans(device, snapshot);
+    }
 
     let devices_count: usize = targets.iter().map(|target| target.devices.len()).sum();
     // The source of each device of the run, to start its warnings with.
@@ -819,6 +832,9 @@ async fn sync<G: Gateway, C: Collector>(
     let by_scope = vlans_by_scope(&targets, &homes);
     let unnamed: BTreeSet<String> =
         targets.iter().filter(|target| !target.vlan_names_managed).map(|target| target.source.name.clone()).collect();
+    // The VLAN numbers of each home once this step is done: those NetBox
+    // holds and those the step creates.
+    let mut held: BTreeMap<VlanHome, BTreeSet<u16>> = BTreeMap::new();
     // The device writes point at these VLANs: any failure here ends the run.
     tracker.step("VLANs");
     for (home, wanted) in &by_scope {
@@ -856,6 +872,11 @@ async fn sync<G: Gateway, C: Collector>(
             }
             let diff = diff_vlans(home, &wanted, &current, &unnamed);
             let changes = diff.changes;
+            let created = changes
+                .iter()
+                .filter(|change| change.kind == "vlan" && change.action == Action::Create)
+                .filter_map(|change| change.key.parse::<u16>().ok());
+            held.insert(home.clone(), current.keys().copied().chain(created).collect());
             outcome.changes.extend(changes.iter().cloned());
             outcome.warnings.extend(diff.warnings);
             // A VLAN NetBox would refuse: left out, so that the others are
@@ -883,6 +904,26 @@ async fn sync<G: Gateway, C: Collector>(
         }
     }
     tracker.advance(1, None);
+
+    // A report names no VLAN, so the VLAN step created none for its ports:
+    // one NetBox does not hold is left out of them, and told once per source,
+    // where the device write would fail on it.
+    for target in targets.iter_mut().filter(|target| target.source.report.is_some()) {
+        let mut missing = BTreeSet::new();
+        for (device, snapshot) in &mut target.devices {
+            let home = homes.get(&snapshot.site_id).cloned().unwrap_or(VlanHome::Site(snapshot.site_id));
+            if let Some(held) = held.get(&home) {
+                missing.extend(leave_out_missing_vlans(device, held));
+            }
+        }
+        if !missing.is_empty() {
+            outcome.warnings.push(format!(
+                "{}: VLAN {} of its ports missing in Netbox: left out of them, a report names no VLAN to create",
+                target.source.name,
+                vlan_list(&missing)
+            ));
+        }
+    }
 
     // Devices.
     let mut synced: BTreeSet<String> = BTreeSet::new();
@@ -1156,6 +1197,7 @@ mod tests {
     use omnisync_core::change::Change;
     use omnisync_core::gateway::filters;
     use omnisync_core::network::inventory::{Kind, Secret, Wanted};
+    use omnisync_core::network::model::{Dot1q, Interface, Mode};
     use omnisync_core::progress::NullProgress;
     use omnisync_core::{Action, Filters, GatewayError, Row};
     use omnisync_netbox::testing::FakeGateway;
@@ -2671,6 +2713,189 @@ mod tests {
         assert_eq!(ports.len(), 141);
         assert_eq!(cabled(&netbox).await, [BTreeSet::from([ports["TenGigabitEthernet1/0/40"], nic])]);
         assert_eq!(sync(&inventory, &netbox, &NoSsh, false, false).await.changes, []);
+    }
+
+    /// `nipper`, its pattern reading the VLANs of a `V:` pair as well.
+    fn nipper_with_vlans(name: &str) -> Source {
+        let pattern = r"(?i)(?:\b(?P<host>lab1-pve\d+)(?:[\s_-]+(?P<port>[a-z0-9]+))?.*?)??\bV:(?P<vlans>[0-9,-]+)";
+        Source { neighbor_pattern: Some(Regex::new(pattern).unwrap()), ..nipper(name) }
+    }
+
+    /// The mode of an interface, the NetBox id of its untagged VLAN and those of its tagged ones.
+    fn dot1q_of(netbox: &FakeGateway, interface: u64) -> (Value, Value, Vec<u64>) {
+        let row = netbox.row("dcim.interfaces", interface).expect("the interface");
+        let field = |name: &str| row.get(name).cloned().unwrap_or(Value::Null);
+        let tagged = field("tagged_vlans").as_array().cloned().unwrap_or_default();
+        (field("mode"), field("untagged_vlan"), tagged.iter().filter_map(Value::as_u64).collect())
+    }
+
+    // A report names no VLAN: the ones NetBox does not hold cannot be created.
+    // The access VLANs of fplab1-sw001.html are 2, 5, 6, 7, 10, 11, 12, 17, 18,
+    // 952 and 1511 (GigabitEthernet0/0, routed, left aside), and its two trunks
+    // with a list say `V:4-6,10-12,14-19,952`.
+    #[tokio::test]
+    async fn a_vlan_netbox_does_not_hold_is_left_out_with_one_warning_per_switch() {
+        let netbox = FakeGateway::new();
+        let switch_id = add_device(&netbox, "fplab1-sw001", 13);
+        let [production, housing] = [(10, "Production"), (12, "Housing")]
+            .map(|(vid, name)| netbox.add("ipam.vlans", json!({"site": 13, "vid": vid, "name": name})));
+        let inventory = inventory(vec![nipper_with_vlans("fplab1-sw001")], &[]);
+        let outcome = sync(&inventory, &netbox, &NoSsh, true, false).await;
+        assert_eq!(outcome.errors, [] as [&str; 0]);
+        let warning = "fplab1-sw001: VLAN 2,4-7,11,14-19,952,1511 of its ports missing in Netbox: left out of them, \
+                       a report names no VLAN to create";
+        assert_eq!(outcome.warnings, [warning]);
+        let ports = ports(&netbox, switch_id).await;
+        // `Port-channel24 | Yes | LAB1-PRE01 ETH0-ETH1 T:HOU V:12 | 12 | Access`
+        assert_eq!(dot1q_of(&netbox, ports["Port-channel24"]), (json!("access"), json!(housing), vec![]));
+        // `GigabitEthernet1/0/1 | No | IAS3.S1 G1/2 | 1511 | Access`: its mode, and no VLAN.
+        assert_eq!(dot1q_of(&netbox, ports["GigabitEthernet1/0/1"]), (json!("access"), Value::Null, vec![]));
+        // `TenGigabitEthernet1/1/8 | Yes | description CTA/CTB/LE-143095 V:4-6,10-12,14-19,952 | 2 | Trunk`
+        assert_eq!(
+            dot1q_of(&netbox, ports["TenGigabitEthernet1/1/8"]),
+            (json!("tagged"), Value::Null, vec![production, housing])
+        );
+        // `GigabitEthernet1/0/5 | Yes | fplab1-rt002_Gi0/0 D:Interco-Directe | 2 | Trunk`: its mode alone.
+        assert_eq!(dot1q_of(&netbox, ports["GigabitEthernet1/0/5"]), (json!("tagged"), Value::Null, vec![]));
+        // No VLAN was created, and the next run has nothing to write and says the same.
+        assert_eq!(all(&netbox, "ipam.vlans").await.len(), 2);
+        let again = sync(&inventory, &netbox, &NoSsh, true, false).await;
+        assert_eq!((again.changes, again.errors), (vec![], vec![]));
+        assert_eq!(again.warnings, [warning]);
+    }
+
+    // What NetBox has on a trunk whose description lists nothing is not the report's to clear.
+    #[tokio::test]
+    async fn a_trunk_of_a_report_keeps_the_native_and_the_tagged_vlans_netbox_has() {
+        let netbox = FakeGateway::new();
+        let switch_id = add_device(&netbox, "fplab1-sw001", 13);
+        let [native, production] = [(3, "Native"), (10, "Production")]
+            .map(|(vid, name)| netbox.add("ipam.vlans", json!({"site": 13, "vid": vid, "name": name})));
+        // `GigabitEthernet1/0/5 | Yes | fplab1-rt002_Gi0/0 D:Interco-Directe | 2 | Trunk`
+        let trunk = netbox.add(
+            "dcim.interfaces",
+            json!({
+                "device": switch_id, "name": "GigabitEthernet1/0/5", "type": "1000base-t", "mode": "tagged",
+                "untagged_vlan": native, "tagged_vlans": [production],
+            }),
+        );
+        let inventory = inventory(vec![nipper_with_vlans("fplab1-sw001")], &[]);
+        let outcome = sync(&inventory, &netbox, &NoSsh, true, false).await;
+        assert_eq!(outcome.errors, [] as [&str; 0]);
+        assert_eq!(dot1q_of(&netbox, trunk), (json!("tagged"), json!(native), vec![production]));
+    }
+
+    #[tokio::test]
+    async fn a_vlan_is_looked_for_in_the_vlan_group_of_its_site() {
+        let netbox = FakeGateway::new();
+        let site = netbox.add("dcim.sites", json!({"name": "east-01", "slug": "east-01"}));
+        let group = netbox.add("ipam.vlan_groups", json!({"name": "East", "slug": "east"}));
+        let switch_id = add_device(&netbox, "fplab1-sw001", site);
+        // VLAN 12 is at the site, from before it joined the group, and in the group; VLAN 10 at the site alone.
+        netbox.add("ipam.vlans", json!({"site": site, "vid": 12, "name": "Housing"}));
+        netbox.add("ipam.vlans", json!({"site": site, "vid": 10, "name": "Production"}));
+        let shared = netbox.add("ipam.vlans", json!({"group": group, "vid": 12, "name": "Housing"}));
+        let inventory = inventory(vec![nipper_with_vlans("fplab1-sw001")], &[]);
+        let outcome = run(&inventory, &netbox, &NoSsh, &east(), &NullProgress).await;
+        assert_eq!(outcome.errors, [] as [&str; 0]);
+        // VLAN 10 is not in the group: it is one of those left out.
+        assert_eq!(
+            outcome.warnings,
+            ["fplab1-sw001: VLAN 2,4-7,10-11,14-19,952,1511 of its ports missing in Netbox: left out of them, \
+              a report names no VLAN to create"]
+        );
+        let ports = ports(&netbox, switch_id).await;
+        assert_eq!(dot1q_of(&netbox, ports["Port-channel24"]), (json!("access"), json!(shared), vec![]));
+        assert_eq!(dot1q_of(&netbox, ports["TenGigabitEthernet1/1/8"]), (json!("tagged"), Value::Null, vec![shared]));
+    }
+
+    // `TenGigabitEthernet1/1/8 | ... V:4-6,10-12,14-19,952 | 2 | Trunk` and `TenGigabitEthernet2/1/8`,
+    // the same list. NetBox holds the first as a trunk whose native VLAN is 12, entered by hand on
+    // the VLAN of the site before the site joined its group, and the second as an access port of
+    // VLAN 12, which the report no longer says it is.
+    #[tokio::test]
+    async fn the_untagged_vlan_netbox_holds_is_the_native_one_of_a_trunk_and_never_the_access_one_of_a_former_access_port()
+     {
+        let netbox = FakeGateway::new();
+        let site = netbox.add("dcim.sites", json!({"name": "east-01", "slug": "east-01"}));
+        let group = netbox.add("ipam.vlan_groups", json!({"name": "East", "slug": "east"}));
+        let switch_id = add_device(&netbox, "fplab1-sw001", site);
+        let of_the_site = netbox.add("ipam.vlans", json!({"site": site, "vid": 12, "name": "Housing"}));
+        let [production, housing] = [(10, "Production"), (12, "Housing")]
+            .map(|(vid, name)| netbox.add("ipam.vlans", json!({"group": group, "vid": vid, "name": name})));
+        let trunk = netbox.add(
+            "dcim.interfaces",
+            json!({
+                "device": switch_id, "name": "TenGigabitEthernet1/1/8", "type": "10gbase-x-sfpp", "mode": "tagged",
+                "untagged_vlan": of_the_site, "tagged_vlans": [],
+            }),
+        );
+        let former = netbox.add(
+            "dcim.interfaces",
+            json!({
+                "device": switch_id, "name": "TenGigabitEthernet2/1/8", "type": "10gbase-x-sfpp", "mode": "access",
+                "untagged_vlan": housing, "tagged_vlans": [],
+            }),
+        );
+        let inventory = inventory(vec![nipper_with_vlans("fplab1-sw001")], &[]);
+        let outcome = run(&inventory, &netbox, &NoSsh, &east(), &NullProgress).await;
+        assert_eq!(outcome.errors, [] as [&str; 0]);
+        // The native VLAN is left where it is, and is not tagged as well.
+        assert_eq!(dot1q_of(&netbox, trunk), (json!("tagged"), json!(of_the_site), vec![production]));
+        // The access VLAN is not kept as a native one: the whole list is tagged.
+        assert_eq!(dot1q_of(&netbox, former), (json!("tagged"), Value::Null, vec![production, housing]));
+        let again = run(&inventory, &netbox, &NoSsh, &east(), &NullProgress).await;
+        assert_eq!((again.changes, again.errors), (vec![], vec![]));
+    }
+
+    /// A switch whose state is given, read as over SSH.
+    struct Told(DeviceState);
+
+    impl Collector for Told {
+        async fn collect(&self, _source: &Source, _commands: &CommandLog<'_>) -> Result<DeviceState, CollectionError> {
+            Ok(self.0.clone())
+        }
+    }
+
+    // The configuration of a switch read over SSH gives its VLANs: its description only is compared.
+    #[tokio::test]
+    async fn vlans_in_a_description_that_differ_from_the_configuration_are_warned_about() {
+        let netbox = FakeGateway::new();
+        let switch_id = add_device(&netbox, "nexus01.lab01", 12);
+        let trunk = Interface {
+            description: Some("lab1-esx01.prod/vmnic0 V:10-12".to_owned()),
+            r#type: Some("10gbase-x-sfpp".to_owned()),
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: Some(1), tagged_vlans: vec![10, 11] }),
+            ..Interface::new("Ethernet1/1", true)
+        };
+        let state = DeviceState {
+            serial: Some("FOC9792A4K9".to_owned()),
+            interfaces: BTreeMap::from([("Ethernet1/1".to_owned(), trunk)]),
+            // VLAN 12 is defined on the switch and not allowed on the port.
+            vlans: BTreeMap::from([
+                (1, "default".to_owned()),
+                (10, "Production".to_owned()),
+                (11, "Backoffice".to_owned()),
+                (12, "Housing".to_owned()),
+            ]),
+            ..DeviceState::default()
+        };
+        // The host group matches no description: no cable is looked for.
+        let pattern = Regex::new(r"\b(?P<host>no-host-\d+)|\bV:(?P<vlans>[0-9,-]+)").unwrap();
+        let described = Source { neighbor_pattern: Some(pattern), ..nexus01() };
+        let outcome = sync(&inventory(vec![described], &[]), &netbox, &Told(state), true, false).await;
+        assert_eq!(outcome.errors, [] as [&str; 0]);
+        assert_eq!(
+            outcome.warnings,
+            ["nexus01.lab01: Ethernet1/1: its description says VLAN 10-12, its configuration says 10-11; the \
+              configuration is believed"]
+        );
+        let ports = ports(&netbox, switch_id).await;
+        let vlan = |vid: u64| netbox.find("ipam.vlans", "vid", &json!(vid)).expect("the VLAN of the switch");
+        assert_eq!(
+            dot1q_of(&netbox, ports["Ethernet1/1"]),
+            (json!("tagged"), json!(vlan(1)), vec![vlan(10), vlan(11)])
+        );
     }
 
     #[tokio::test]

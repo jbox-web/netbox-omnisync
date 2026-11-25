@@ -25,13 +25,39 @@ pub fn expand_vlan_list(text: &str) -> Result<BTreeSet<u16>, VlanListError> {
             continue;
         }
         match part.split_once('-') {
-            Some((low, high)) => vids.extend(vid(low, part)?..=vid(high, part)?),
+            Some((low, high)) => {
+                let (low, high) = (vid(low, part)?, vid(high, part)?);
+                // A range that ends before it starts holds nothing: a mistake, not an empty list.
+                if low > high {
+                    return Err(VlanListError(part.to_owned()));
+                }
+                vids.extend(low..=high);
+            }
             None => {
                 vids.insert(vid(part, part)?);
             }
         }
     }
     Ok(vids)
+}
+
+/// VLANs as a switch lists them: `10-12,25`; `none` without any.
+pub fn vlan_list(vids: &BTreeSet<u16>) -> String {
+    let mut ranges: Vec<(u16, u16)> = Vec::new();
+    for vid in vids {
+        match ranges.last_mut() {
+            Some((_, last)) if last.checked_add(1) == Some(*vid) => *last = *vid,
+            _ => ranges.push((*vid, *vid)),
+        }
+    }
+    if ranges.is_empty() {
+        return "none".to_owned();
+    }
+    let written: Vec<String> = ranges
+        .into_iter()
+        .map(|(first, last)| if first == last { first.to_string() } else { format!("{first}-{last}") })
+        .collect();
+    written.join(",")
 }
 
 pub fn access(vlan: Option<u16>, defined: &BTreeSet<u16>) -> Dot1q {
@@ -82,6 +108,17 @@ mod tests {
     fn expand_vlan_list_refuses_what_is_not_a_vid() {
         assert_eq!(expand_vlan_list("26,ALL"), Err(VlanListError("ALL".to_owned())));
         assert_eq!(expand_vlan_list("26-x").expect_err("x is no VID").to_string(), "invalid VLAN list item '26-x'");
+        // A range that ends before it starts holds no VLAN: a typing mistake, not an empty list.
+        assert_eq!(expand_vlan_list("10,20-10"), Err(VlanListError("20-10".to_owned())));
+        assert_eq!(expand("12-12"), vids([12]));
+    }
+
+    #[test]
+    fn a_vlan_list_is_written_as_a_switch_writes_it() {
+        assert_eq!(vlan_list(&vids([26, 2701, 2702, 2703])), "26,2701-2703");
+        assert_eq!(vlan_list(&vids([4, 5, 6, 10, 12, 4094])), "4-6,10,12,4094");
+        assert_eq!(vlan_list(&vids([65534, 65535])), "65534-65535");
+        assert_eq!(vlan_list(&vids([])), "none");
     }
 
     #[test]

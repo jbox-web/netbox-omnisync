@@ -448,8 +448,8 @@ and BMC sources only complete devices that already exist in NetBox.
 | `proxmox` | The Proxmox VE API of one node of the cluster; with `neighbors = "lldpd"`, one command over SSH on each node | The cluster and its type; each node as a device with its interfaces; virtual machines and containers with their interfaces, MAC addresses, IP addresses and their prefixes, virtual disks, platform and tags; the 802.1Q mode and the VLANs of the guest interfaces, from the `tag` and the `trunks` of the network cards (`netN`) of the configuration, and of the VLAN sub-interfaces of a node (`bond2.25`), with their parent interface; the site, tenant, roles, generic manufacturer and device type they refer to when missing, and the VLANs the site lacks, created as `VLAN<id>`. The interfaces of a guest come from its agent: a virtual machine whose agent does not answer has none, hence no VLAN either. A card without `tag` nor `trunks` leaves its interface as NetBox has it, so a `tag` removed in Proxmox stays in NetBox; a `trunks` of more than 64 VLANs is a warning and is not written. With `neighbors = "lldpd"` and a run that reads switches, the switch port each physical card of a node hears: see "Cables a host hears" |
 | `vmware` | The SOAP API of a vCenter (read and session operations only) for the inventory, its REST API for the tags | The datacenter as a cluster group, the clusters and their type; each ESXi host as a device with its serial, asset tag, physical and VMkernel interfaces, MAC and IP addresses; virtual machines with their interfaces, MAC addresses, IP addresses, virtual disks, platform, comments and the vSphere tags of the machine, of its cluster and of its datacenter; the VLANs of the port groups; the site, tenant, roles, manufacturer, device type and platforms they refer to when missing. Distributed switches are not supported yet: a machine on one keeps its interface and addresses, without VLAN, and the run says so. When the run also reads switches, the switch port each physical card of a host hears (CDP, `QueryNetworkHint`): see "Cables a host hears" |
 | `redfish` (kind `bmc`) | The Redfish service of the BMC of each listed device (Dell iDRAC 7, 8 and 9, HPE iLO 4), HTTP Basic, `GET` only | The device type of the device and its manufacturer, created when missing, and its serial: the service tag (`SKU`) of a Dell, the `SerialNumber` of any other vendor. Nothing else: no interface, no address, no tag on the device, and never a new device |
-| `nxos`, `ios` | SSH, a closed list of `show` commands | Serial of the device (of each member of an IOS stack); interfaces with their enabled state, description, MTU, type, MAC address, LAG, 802.1Q mode and VLANs; IPv4 addresses with their VRF and the primary address; VLANs of the site; cables from LLDP and CDP neighbours, and from port descriptions when `neighbor_pattern` is set |
-| `nipper` | A Nipper configuration report (HTML file), no connection | Interfaces of the switch or stack with their enabled state, description and type; cables from port descriptions when `neighbor_pattern` is set. Addresses, LAG membership and 802.1Q settings are not read from a report and are left as NetBox has them; its cables are never deleted, but where a host hears the port |
+| `nxos`, `ios` | SSH, a closed list of `show` commands | Serial of the device (of each member of an IOS stack); interfaces with their enabled state, description, MTU, type, MAC address, LAG, 802.1Q mode and VLANs; IPv4 addresses with their VRF and the primary address; VLANs of the site; cables from LLDP and CDP neighbours, and from port descriptions when `neighbor_pattern` is set. A description that gives other VLANs than the configuration of its port is a warning |
+| `nipper` | A Nipper configuration report (HTML file), no connection | Interfaces of the switch or stack with their enabled state, description and type; the 802.1Q mode of each port and the VLAN of an access port; the VLANs of a trunk and the cables, from port descriptions, when `neighbor_pattern` is set (see "VLANs of a switch known by a report"). Addresses, LAG membership and the native VLAN of a trunk are not read from a report and are left as NetBox has them; its cables are never deleted, but where a host hears the port |
 | `fortios` | The FortiOS REST API, certificate pinned by `tls_fingerprint` | Serial of each cluster member; interfaces with their enabled state, alias (as label), description, overridden MTU, MAC address, type, parent, LAG and 802.1Q mode; IPv4 addresses, in the VRF named after their VDOM when it is not `root`; a VLAN of the site that no switch defines. Neighbours are not read: cables are left as NetBox has them |
 
 A value a source does not report is left as NetBox has it; only a value
@@ -466,6 +466,74 @@ together (tried on 2026-11-20); a firewall in 7.6.3 has not been tried yet. A
 refused login says why, as FortiOS tells it (`LOGIN_FAILED (wrong user or
 password)`, `LOGIN_LOCKED_OUT (account locked out)`, a login disclaimer to
 accept, two-factor authentication), and nothing of the firewall is read.
+
+### VLANs of a switch known by a report
+
+A Nipper report gives the 802.1Q mode of each port (`Access`, `Trunk`) and
+its access VLAN. It gives neither the native VLAN of a trunk nor the VLANs
+the trunk allows: on a trunk, its `VLAN` column still is the access VLAN of
+the port (`crates/cisco/tests/fixtures/README.md` says how this was
+observed). What is written follows:
+
+- **An access port** gets its mode and its VLAN from the report.
+- **A trunk** gets its mode from the report, and its tagged VLANs from its
+  description, when `neighbor_pattern` has a named group `vlans` and the
+  description matches it. The group is read as the list of `switchport trunk
+  allowed vlan`: `10-12,25`, or `all` for a trunk that carries every VLAN.
+  A trunk whose description gives no VLAN keeps the tagged VLANs NetBox has.
+  Its native VLAN is never written: NetBox keeps the untagged VLAN it has on
+  a port it already has as a trunk, and that one, which the allowed list of
+  a switch holds as well, is not repeated among the tagged VLANs. A port
+  NetBox has as an access port and the report now gives as a trunk loses its
+  access VLAN: nobody told it as a native one.
+- Every port the report gives a mode is read, a port-channel as well, and a
+  port that is disabled or tells no cable. A description may give VLANs
+  without naming a host. A port the report gives an address (the routed
+  management port of a stack) is not a switchport: its mode is left as it is.
+- **A VLAN NetBox does not hold is never created**: a report names no VLAN.
+  It is looked for at the site of the switch, or in the VLAN group of that
+  site; a missing one is left out of the ports, and the run says which in one
+  warning per switch. An access port whose VLAN is missing keeps the VLAN
+  NetBox has.
+- A list that cannot be read (`V:10-x`, a range that ends before it starts,
+  or `Vlan 10-11-12`, where the dashes separate three VLANs) is a warning
+  naming the port, and the trunk keeps its tagged VLANs: a list is never read
+  in part. An access port whose description says another VLAN than the
+  report is a warning too: the report is believed.
+
+A switch read over SSH gives its VLANs itself. Its descriptions are only
+compared, on the VLANs the switch defines: one that gives other VLANs than
+the configuration of its port is a warning, and the configuration is written. As any warning, it lasts in the
+[check](#monitoring-check) until a run no longer says it.
+
+**A convention for port descriptions.** Any wording can be read, as long as
+the pattern finds it. This one keeps the host, its port and the VLANs apart,
+and what follows reads it:
+
+```
+[No Monitor] <host>/<port>[/<speed>] [<key>:<value> ...]
+```
+
+| Description | Host | Port | VLANs |
+|---|---|---|---|
+| `lab1-esx03.prod/vmnic2/1G V:10-12,17-18,21-25` | `lab1-esx03.prod` | `vmnic2` | 10 to 12, 17, 18, 21 to 25 |
+| `lab1-rt02.prod/GigabitEthernet0/0 V:952,954 D:Interco` | `lab1-rt02.prod` | `GigabitEthernet0/0` | 952, 954 |
+| `[No Monitor] lab1-fw01.prod/wan1 D:none V:952 T:HST` | `lab1-fw01.prod` | `wan1` | 952 |
+| `[No Monitor] lab1-c190-01.prod/a0a/10G V:all` | `lab1-c190-01.prod` | `a0a` | every VLAN |
+| `[No Monitor] drac-lab1-pve01.prod V:18` | `lab1-pve01.prod` | its management card | 18 |
+| `N:CIRCUIT CTA/CTB/LE-143095 V:4-7,10-12` | none | none | 4 to 7, 10 to 12 |
+
+`[No Monitor]` is a marker of the operator and is optional, the speed (`1G`,
+`10G`, `100M`) is optional, `V:` gives the VLANs up to the next space, and
+every other pair (`D:`, `T:`, `IP:`) is ignored, in any order. The first word of any other
+description is read as a host too (`router of the provider` names `router`),
+which NetBox does not hold: a warning at every run. Narrow the `host` group
+to the names of your hosts (`(?P<host>lab[12]-[a-z0-9.-]+)`) to leave such
+descriptions out:
+
+```toml
+neighbor_pattern = '(?i)^(?:\[No Monitor\]\s+)?(?:(?:i?drac|ilo)[-\s]+)?(?:(?P<host>[a-z0-9][a-z0-9.-]*)(?:/(?P<port>\S+?))?(?:/\d+[MG])?(?:\s+|$))?(?:.*?\bV:(?P<vlans>\S+))?'
+```
 
 ### DNS names
 

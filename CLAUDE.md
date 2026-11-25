@@ -345,6 +345,54 @@ clears. What could not be read (the interfaces of a stopped VM) is unknown.
   `unreported_mtu_is_not_compared`, `parent_not_reported_is_left_as_netbox_has_it`,
   `unmanaged_ips_are_neither_pruned_nor_warned_about`
 
+**A report tells the mode of a trunk, never its VLANs.** The `VLAN` column of
+a Nipper report is the access VLAN of the port, whatever its mode
+(`crates/cisco/tests/fixtures/README.md`): the native VLAN of a trunk is never
+written, and its tagged VLANs are those its description gives (the optional
+group `vlans` of `neighbor_pattern`, the syntax of `switchport trunk allowed
+vlan`), or left as NetBox has them; the native VLAN NetBox holds on a trunk is
+not repeated among them, and the access VLAN of a port that became a trunk is
+never taken for one. A list that cannot be read is a warning, never a guess,
+and never read in part. A report names no VLAN: one NetBox does not hold is left out of
+the ports and told once per switch, never created. A port the report gives an
+address is not a switchport. On a switch read over SSH the configuration is
+believed, and a description that says otherwise, of the VLANs the switch
+defines, is only a warning.
+- `crates/cisco/src/parsers/nipper.rs`: `the_mode_and_the_access_vlan_of_a_port_come_from_the_report`,
+  `a_trunk_of_the_report_has_no_vlan_list_of_its_own`,
+  `a_port_without_mode_in_the_report_stays_unmanaged`,
+  `a_port_the_report_gives_an_address_is_not_a_switchport`
+- `crates/core/src/network/diff.rs`: `a_mode_told_without_its_vlans_leaves_the_vlans_netbox_has`,
+  `the_tagged_vlans_are_written_while_the_untagged_one_is_left_as_netbox_has_it`
+- `crates/core/src/network/descriptions.rs`: `the_vlans_of_a_trunk_come_from_its_description`,
+  `a_trunk_without_vlans_in_its_description_keeps_the_tagged_vlans_netbox_has`,
+  `a_vlan_list_in_the_former_form_is_not_a_list`,
+  `an_unreadable_vlan_list_is_a_warning_and_the_port_keeps_its_vlans`,
+  `a_trunk_whose_description_says_all_carries_every_vlan`,
+  `the_vlans_of_a_port_channel_come_from_its_description`,
+  `a_disabled_port_or_one_without_link_keeps_its_vlans`,
+  `the_access_vlan_of_the_report_wins_over_the_description_and_the_difference_is_warned`,
+  `vlans_in_a_description_that_differ_from_the_configuration_are_warned_about`,
+  `a_vlan_the_switch_does_not_define_is_not_a_difference`,
+  `a_reversed_range_or_a_list_without_any_vlan_is_not_a_list`,
+  `a_list_of_every_vlan_is_a_trunk_that_carries_them_all`
+- `crates/core/src/network/vlans.rs`: `the_vlans_netbox_does_not_hold_are_left_out_of_the_ports_and_given`,
+  `the_native_vlan_netbox_has_on_a_trunk_is_not_repeated_among_its_tagged_vlans`,
+  `the_access_vlan_of_a_port_that_became_a_trunk_is_not_taken_for_its_native_vlan`
+- `crates/core/src/network/inventory.rs`: `a_neighbor_pattern_may_name_the_vlans_of_a_port`
+- `crates/cisco/src/collect.rs`: `the_vlans_of_a_report_come_from_its_columns_and_from_its_descriptions`,
+  `a_report_whose_descriptions_follow_the_convention_gives_the_vlans_of_its_trunks`,
+  `a_port_whose_neighbour_is_announced_keeps_the_vlans_of_its_description`,
+  `a_malformed_list_is_never_read_in_part_by_the_pattern_of_the_convention`,
+  `the_configuration_of_a_switch_read_over_ssh_is_believed_and_its_description_compared`
+- `crates/cli/src/network.rs`: `a_vlan_netbox_does_not_hold_is_left_out_with_one_warning_per_switch`,
+  `a_trunk_of_a_report_keeps_the_native_and_the_tagged_vlans_netbox_has`,
+  `a_vlan_is_looked_for_in_the_vlan_group_of_its_site`,
+  `the_untagged_vlan_netbox_holds_is_the_native_one_of_a_trunk_and_never_the_access_one_of_a_former_access_port`,
+  `vlans_in_a_description_that_differ_from_the_configuration_are_warned_about`
+- `crates/cli/tests/integration/network.rs`:
+  `the_ports_of_a_report_get_their_mode_and_the_vlans_the_report_and_the_descriptions_tell`
+
 **A DNS name is only ever written by an answer.** An address without PTR
 record, a lookup that fails or times out, an empty name, a name NetBox would
 refuse: no `dns_name` is reported, never an empty one. A lookup never fails a

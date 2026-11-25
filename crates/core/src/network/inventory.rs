@@ -1497,6 +1497,61 @@ neighbor_suffix = ".prod"
         assert!(source.neighbor_pattern.is_none());
     }
 
+    // The pattern the README gives for the convention it recommends:
+    // `[No Monitor] <host>/<port>[/<speed>] [<key>:<value> ...]`, `V:` being the VLANs.
+    // The descriptions are those of `fplab1-sw001-convention.html` of the Cisco fixtures.
+    #[test]
+    fn a_neighbor_pattern_may_name_the_vlans_of_a_port() {
+        let convention = concat!(
+            r"(?i)^(?:\[No Monitor\]\s+)?(?:(?:i?drac|ilo)[-\s]+)?",
+            r"(?:(?P<host>[a-z0-9][a-z0-9.-]*)(?:/(?P<port>\S+?))?(?:/\d+[MG])?(?:\s+|$))?",
+            r"(?:.*?\bV:(?P<vlans>\S+))?",
+        );
+        let text = swap(NIPPER_TOML, r"(?i)\b(?P<host>lab1-pve\d+)(?:[\s_-]+(?P<port>[a-z0-9]+))?", convention);
+        let source = one(load(&text, &NETBOX_ONLY));
+        let read = |description: &'static str| {
+            let captures = source.neighbor_pattern.as_ref().unwrap().captures(description).unwrap();
+            ["host", "port", "vlans"].map(|group| captures.name(group).map(|found| found.as_str()))
+        };
+        assert_eq!(
+            read("lab1-esx03.prod/vmnic2/1G V:10-12,17-18,21-25"),
+            [Some("lab1-esx03.prod"), Some("vmnic2"), Some("10-12,17-18,21-25")]
+        );
+        // The pairs come in any order, and a port name may hold a slash.
+        assert_eq!(
+            read("[No Monitor] lab1-fw01.prod/wan2/1G D:sans V:954 T:HST IP:192.0.2.8/255.255.255.240"),
+            [Some("lab1-fw01.prod"), Some("wan2"), Some("954")]
+        );
+        assert_eq!(
+            read("lab1-rt02.prod/GigabitEthernet0/0 V:952,954,1511 D:Interco-Directe"),
+            [Some("lab1-rt02.prod"), Some("GigabitEthernet0/0"), Some("952,954,1511")]
+        );
+        assert_eq!(
+            read("lab1-rt02.prod/Port-channel6/1G V:952,954,1511 IP: Outside: Vlan 1511 : 192.0.2.4"),
+            [Some("lab1-rt02.prod"), Some("Port-channel6"), Some("952,954,1511")]
+        );
+        // A trunk that carries every VLAN, and the management card of a server.
+        assert_eq!(
+            read("[No Monitor] lab1-c190-01.prod/a0a/10G V:all"),
+            [Some("lab1-c190-01.prod"), Some("a0a"), Some("all")]
+        );
+        assert_eq!(read("[No Monitor] drac-lab1-pve01.prod V:18"), [Some("lab1-pve01.prod"), None, Some("18")]);
+        // The group is optional: a description without it still names its host.
+        assert_eq!(read("lab1-db05.prod/eno1/1G"), [Some("lab1-db05.prod"), Some("eno1"), None]);
+        assert_eq!(read("lab1-db05.prod"), [Some("lab1-db05.prod"), None, None]);
+        // And a description that names no host still gives its VLANs.
+        assert_eq!(
+            read("N:CIRCUIT CTA/CTB/LE-143095 V:4-7,10-12,14-22,24-27,952,954"),
+            [None, None, Some("4-7,10-12,14-22,24-27,952,954")]
+        );
+        assert_eq!(read("N:Unused-Interface"), [None, None, None]);
+        // The list is the whole word after `V:`: a malformed one is read whole, and refused as such.
+        assert_eq!(
+            read("lab1-esx03.prod/vmnic2/1G V:10-12x T:HST"),
+            [Some("lab1-esx03.prod"), Some("vmnic2"), Some("10-12x")]
+        );
+    }
+
     #[test]
     fn nipper_switch_errors() {
         let text = swap(NIPPER_TOML, "report = \"reports/fplab1-sw001.html\"\n", "");
