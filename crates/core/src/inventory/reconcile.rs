@@ -253,6 +253,9 @@ struct Wanted<'a> {
     reporters: Vec<&'a SourceFacts>,
     unknown: BTreeSet<Kind>,
     ensure_only: bool,
+    /// A report that only completes the object was added to the one of its
+    /// winner: a part of `content` is not the winner's.
+    completed: bool,
     /// No source owns the object: it is completed where it exists, never
     /// created, tagged or deleted.
     complement_only: bool,
@@ -596,7 +599,8 @@ impl<'a> Reconciler<'a> {
             }
             let unknown = reports.iter().flat_map(|(report, _)| report.unknown_dependents.iter().copied()).collect();
             let ensure_only = !complement_only && owners.iter().all(|(report, _)| report.ensure_only);
-            wanted.insert(key, Wanted { content, reporters, unknown, ensure_only, complement_only });
+            let completed = !complement_only && !complements.is_empty();
+            wanted.insert(key, Wanted { content, reporters, unknown, ensure_only, completed, complement_only });
         }
         wanted
     }
@@ -605,6 +609,17 @@ impl<'a> Reconciler<'a> {
     /// the priority, then the first by name, as between two whole reports.
     fn wins(&self, source: &SourceFacts, other: &SourceFacts) -> bool {
         (self.priority(&source.name), source.name.as_str()) < (self.priority(&other.name), other.name.as_str())
+    }
+
+    /// Whether a source left out of this run, that wins over `winner`, holds
+    /// the object: it carries the tag of that source, which only a run of the
+    /// source that still reported the object leaves there.
+    fn held_by_a_better_source(&self, existing: &Current, winner: &SourceFacts) -> bool {
+        existing
+            .tags
+            .iter()
+            .filter_map(|tag| self.by_tag.get(tag.slug.as_str()))
+            .any(|facts| facts.status == SourceStatus::Skipped && self.wins(facts, winner))
     }
 
     /// Whether the value a completing report gives for `name` is taken, given
@@ -1324,6 +1339,36 @@ impl<'a> Reconciler<'a> {
                 }
             }
             if object.ensure_only && !self.owned(existing) {
+                return;
+            }
+            // A run of both sources would have had this report lose as a whole
+            // and only add its tag: a source that runs apart (another host,
+            // another kind) writes no more, or each would write its values
+            // over the other's at every run. What the object points to is
+            // still in use. A report another source completes is written as
+            // before: what completes it is not the loser's to drop.
+            if let Some(&winner) = object.reporters.first()
+                && !object.completed
+                && self.held_by_a_better_source(existing, winner)
+            {
+                for (field, target) in desired.kind.reference_fields() {
+                    if let Some(id) = nested_id(&existing.row, field) {
+                        self.pointed_at.insert((*target, id));
+                    }
+                }
+                for (field, target) in desired.kind.reference_list_fields() {
+                    self.pointed_at.extend(listed_ids(&existing.row, field).map(|id| (*target, id)));
+                }
+                let mut now = Writes::default();
+                if desired.kind.taggable() {
+                    let held: Vec<String> = existing.tags.iter().map(|tag| tag.name.clone()).collect();
+                    let wanted = self.tags(&existing.tags, &object.reporters, None);
+                    if caseless_set(&wanted) != caseless_set(&held) {
+                        now.fields.insert("tags".to_owned(), json!(wanted));
+                        now.before.insert("tags".to_owned(), json!(sorted_names(held)));
+                        self.step(Phase::Write, desired, Action::Update, Some(existing.id), now);
+                    }
+                }
                 return;
             }
         }
@@ -2916,6 +2961,146 @@ mod tests {
                 .fields([("tags", json!(["netbox-omnisync", "source-vc1"]))])
                 .before([("tags", json!(["netbox-omnisync", "source-pve1", "source-vc1"]))])
                 .id(8)]
+        );
+    }
+
+    // --- Two sources run apart -----------------------------------------------
+
+    const SHARED: &str = "192.168.10.0/24";
+
+    fn skipped(name: &str) -> SourceFacts {
+        SourceFacts { status: SourceStatus::Skipped, ..source(name) }
+    }
+
+    /// The prefix two sources report, as NetBox has it: who wrote it last is
+    /// in its custom field `source`.
+    fn shared_prefix_row(written_by: &str, tags: Value) -> (Kind, Value) {
+        (
+            Kind::Prefix,
+            json!({
+                "id": 80, "prefix": SHARED, "vrf": null, "custom_fields": {"source": written_by}, "tags": tags
+            }),
+        )
+    }
+
+    /// As a Proxmox reports the network of an address: it only wants it to exist.
+    fn shared_prefix(source: &str) -> Desired {
+        Desired::new(Kind::Prefix, Identity::prefix(SHARED, VrfKey::Unknown), source)
+            .field("prefix", SHARED)
+            .custom_field("source", source)
+            .ensure_only()
+    }
+
+    #[test]
+    fn an_object_a_better_source_left_out_of_the_run_holds_is_left_as_netbox_has_it() {
+        let current = netbox([shared_prefix_row("pve-a", tagged(["netbox-omnisync", "source-pve-a"]))]);
+        // pve-a is ranked first and is not in this run: a run of both would
+        // have had pve-b lose, and only add its tag.
+        let plan = reconcile(&[shared_prefix("pve-b")], &current, &run([skipped("pve-a"), source("pve-b")]));
+        assert_eq!(
+            plan.changes(),
+            [change("prefix", Action::Update, "", SHARED)
+                .fields([("tags", json!(["netbox-omnisync", "source-pve-a", "source-pve-b"]))])
+                .before([("tags", json!(["netbox-omnisync", "source-pve-a"]))])
+                .id(80)]
+        );
+        assert_eq!(plan.warnings, Vec::<Warning>::new());
+    }
+
+    #[test]
+    fn two_sources_run_apart_never_write_an_object_back_and_forth() {
+        // What the run of pve-b alone left: its tag, and the value of pve-a.
+        let both = tagged(["netbox-omnisync", "source-pve-a", "source-pve-b"]);
+        let current = netbox([shared_prefix_row("pve-a", both)]);
+        let of_a = reconcile(&[shared_prefix("pve-a")], &current, &run([source("pve-a"), skipped("pve-b")]));
+        assert_eq!(of_a, nothing());
+        let of_b = reconcile(&[shared_prefix("pve-b")], &current, &run([skipped("pve-a"), source("pve-b")]));
+        assert_eq!(of_b, nothing());
+    }
+
+    #[test]
+    fn an_object_a_worse_source_left_out_holds_is_written_by_the_better_one() {
+        let current = netbox([shared_prefix_row("pve-a", tagged(["netbox-omnisync", "source-pve-a"]))]);
+        // pve-b is ranked first: it writes, and pve-a, left out, keeps its tag.
+        let plan = reconcile(&[shared_prefix("pve-b")], &current, &run([source("pve-b"), skipped("pve-a")]));
+        assert_eq!(
+            plan.changes(),
+            [change("prefix", Action::Update, "", SHARED)
+                .fields([
+                    ("custom_fields", json!({"source": "pve-b"})),
+                    ("tags", json!(["netbox-omnisync", "source-pve-a", "source-pve-b"]))
+                ])
+                .before([
+                    ("custom_fields", json!({"source": "pve-a"})),
+                    ("tags", json!(["netbox-omnisync", "source-pve-a"]))
+                ])
+                .id(80)]
+        );
+    }
+
+    #[test]
+    fn an_object_the_better_source_no_longer_holds_is_written_by_the_one_that_runs() {
+        // pve-a no longer reports the prefix: its own run took its tag back.
+        let current = netbox([shared_prefix_row("pve-a", tagged(["netbox-omnisync", "source-pve-b"]))]);
+        let plan = reconcile(&[shared_prefix("pve-b")], &current, &run([skipped("pve-a"), source("pve-b")]));
+        assert_eq!(
+            plan.changes(),
+            [change("prefix", Action::Update, "", SHARED)
+                .fields([("custom_fields", json!({"source": "pve-b"}))])
+                .before([("custom_fields", json!({"source": "pve-a"}))])
+                .id(80)]
+        );
+    }
+
+    #[test]
+    fn a_reference_of_an_object_left_to_a_better_source_is_still_in_use() {
+        let (kind, mut value) = vm_row(10, "web01", tagged(["netbox-omnisync", "source-pve-a"]));
+        value["platform"] = json!({"id": 8, "name": "Debian 11", "display": "Debian 11"});
+        let current = netbox([
+            cluster_row(),
+            (Kind::Platform, json!({"id": 8, "name": "Debian 11", "tags": owned_by("pve-b")})),
+            (kind, value),
+        ]);
+        let wanted = [
+            Desired::new(Kind::Platform, Identity::named("Debian 12"), "pve-b").field("name", "Debian 12"),
+            vm("web01", "pve-b").reference("platform", Kind::Platform, Identity::named("Debian 12")),
+        ];
+        // pve-b prunes and no longer reports Debian 11, yet web01, which pve-a
+        // holds, is left on it.
+        let plan = reconcile(&wanted, &current, &run([skipped("pve-a"), pruning("pve-b")]));
+        assert_eq!(
+            plan.changes(),
+            [
+                change("platform", Action::Create, "", "Debian 12")
+                    .fields([("name", json!("Debian 12")), ("tags", json!(["netbox-omnisync", "source-pve-b"]))]),
+                change("vm", Action::Update, "web01", "web01")
+                    .fields([("tags", json!(["netbox-omnisync", "source-pve-a", "source-pve-b"]))])
+                    .before([("tags", json!(["netbox-omnisync", "source-pve-a"]))])
+                    .id(10),
+            ]
+        );
+    }
+
+    #[test]
+    fn what_completes_an_object_a_better_source_left_out_holds_is_still_written() {
+        let (kind, mut value) = device_row(5, "pve01.lab01", 1, tagged(["netbox-omnisync", "source-pve-a"]));
+        value["serial"] = json!("");
+        let current = netbox([(kind, value)]);
+        let wanted = [
+            device("pve01.lab01", "pve-b"),
+            Desired::new(Kind::Device, Identity::device("pve01.lab01"), "bmc1").complement().field("serial", "SVCTAG1"),
+        ];
+        // pve-b alone would leave the device to pve-a; what the BMC knows of it is no report of pve-b.
+        let plan = reconcile(&wanted, &current, &run([skipped("pve-a"), source("pve-b"), source("bmc1")]));
+        assert_eq!(
+            plan.changes(),
+            [change("device", Action::Update, "pve01.lab01", "pve01.lab01")
+                .fields([
+                    ("serial", json!("SVCTAG1")),
+                    ("tags", json!(["netbox-omnisync", "source-pve-a", "source-pve-b"]))
+                ])
+                .before([("serial", json!("")), ("tags", json!(["netbox-omnisync", "source-pve-a"]))])
+                .id(5)]
         );
     }
 

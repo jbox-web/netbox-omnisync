@@ -279,6 +279,49 @@ the list comes last. A report that only wants the object to exist
 and the first report that describes the object wins whatever its priority
 (`a_report_that_only_wants_an_object_to_exist_never_keeps_another_from_describing_it`).
 
+The priority holds between runs as well. Two sources that report the same
+object do not always run together: each host of `runners` launches its own,
+and so does a cron per `--kind` or per `--source`. A source left out of a run
+(`SourceStatus::Skipped`) has no report in it, but the tag it left on an
+object says it reported that object at its last run: a source that stops
+reporting a shared object takes its tag back. So an object NetBox holds that
+carries the tag of a source left out of the run, ranked before the winner of
+the reports of the run (`Reconciler::held_by_a_better_source`, the order of
+`Reconciler::wins`), is left as NetBox has it: the run only adds its own
+ownership tag, which is all a run of both sources would have written for the
+loser. Its fields, references, lists and custom fields are neither compared
+nor written, what it points to is still in use, and the tags that came from
+the tags of a source stay. Without this, each of the two would write its
+values over the other's at every run.
+
+- The better source runs: it wins, as in a run of both, and keeps the tag of
+  the other.
+- The better source no longer reports the object: its own run takes its tag
+  back, and the next run of the other writes its values, once. Its tag only
+  goes when that source prunes and nothing keeps the orphan (an object still
+  pointed to, a network that still holds addresses, what the source could not
+  read): until then the object stays as the better source left it.
+- The object is not in NetBox yet: the first source that runs creates it, the
+  better one rewrites it once at its own run, then nothing more.
+- A better source that failed or was read in part is in the run, not left
+  out: nothing changes for it.
+- A report another source completes in the run (a BMC) is written as before:
+  what completes it is not the loser's to drop.
+- The tag does not tell whether the source left out described the object or
+  only wanted it to exist (`ensure_only`): it holds it either way.
+
+There is no warning: the one of a run of both compares two reports, and only
+one is in this run; a warning at every run would keep `check` in WARNING over
+a state that is wanted
+(`an_object_a_better_source_left_out_of_the_run_holds_is_left_as_netbox_has_it`,
+`two_sources_run_apart_never_write_an_object_back_and_forth`,
+`an_object_a_worse_source_left_out_holds_is_written_by_the_better_one`,
+`an_object_the_better_source_no_longer_holds_is_written_by_the_one_that_runs`,
+`a_reference_of_an_object_left_to_a_better_source_is_still_in_use`,
+`what_completes_an_object_a_better_source_left_out_holds_is_still_written`,
+and `two_hosts_that_report_the_same_object_never_write_it_back_and_forth` in
+`crates/cli/src/cli.rs`).
+
 ### Completing an object
 
 A hypervisor does not always know the hardware it runs on; the BMC of the

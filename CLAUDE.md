@@ -159,15 +159,27 @@ interfaces; a serial the BMC does not know (blank) is never written.
 
 **Two sources never write a field back and forth.** A report that completes
 an object is merged field by field: it beats a fallback (`only_when_empty`)
-whatever the priority, and the priority settles two definite values.
+whatever the priority, and the priority settles two definite values. Two
+sources that own an object and run apart (two hosts, two kinds, two crons)
+follow the priority as in one run: an object that carries the tag of a better
+ranked source left out of the run (`Skipped`) is that source's, and the run
+only adds its own tag to it, without a warning. A report another source
+completes in the run is written as before.
 - `crates/core/src/inventory/reconcile.rs`:
   `what_a_bmc_knows_wins_over_the_fallback_of_a_hypervisor_whatever_the_priority`,
   `a_device_a_bmc_completed_is_stable_whoever_reports_it_next`,
-  `two_sources_that_know_a_field_differently_never_write_it_back_and_forth`
+  `two_sources_that_know_a_field_differently_never_write_it_back_and_forth`,
+  `an_object_a_better_source_left_out_of_the_run_holds_is_left_as_netbox_has_it`,
+  `two_sources_run_apart_never_write_an_object_back_and_forth`,
+  `an_object_a_worse_source_left_out_holds_is_written_by_the_better_one`,
+  `an_object_the_better_source_no_longer_holds_is_written_by_the_one_that_runs`,
+  `a_reference_of_an_object_left_to_a_better_source_is_still_in_use`,
+  `what_completes_an_object_a_better_source_left_out_holds_is_still_written`
 - `crates/cli/src/hypervisors.rs`:
   `the_hardware_of_a_device_a_bmc_documents_is_the_bmc_s_to_tell` (a hypervisor
   only fills the hardware of a device a `bmc` entry lists)
 - `crates/cli/src/cli.rs`:
+  `two_hosts_that_report_the_same_object_never_write_it_back_and_forth`,
   `a_vcenter_and_a_bmc_that_differ_on_a_serial_leave_the_one_of_the_bmc`,
   `a_proxmox_and_its_bmcs_settle_on_the_hardware_of_the_bmc_without_source_priority`,
   `a_proxmox_and_its_bmcs_settle_on_the_hardware_of_the_bmc_whichever_source_is_ranked_first`
