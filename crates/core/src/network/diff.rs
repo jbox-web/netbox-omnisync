@@ -42,8 +42,14 @@ fn wanted_fields(interface: &Interface) -> Fields {
     if interface.dot1q_managed {
         let dot1q = interface.dot1q.as_ref();
         set("mode", json!(dot1q.map(|dot1q| dot1q.mode.as_str())));
-        set("untagged_vlan", json!(dot1q.and_then(|dot1q| dot1q.untagged_vlan)));
-        set("tagged_vlans", json!(dot1q.map(|dot1q| dot1q.tagged_vlans.as_slice()).unwrap_or_default()));
+        // A source may tell the mode of a port and not its VLANs (a trunk of a
+        // configuration report): those NetBox has are not compared.
+        if interface.untagged_vlan_managed {
+            set("untagged_vlan", json!(dot1q.and_then(|dot1q| dot1q.untagged_vlan)));
+        }
+        if interface.tagged_vlans_managed {
+            set("tagged_vlans", json!(dot1q.map(|dot1q| dot1q.tagged_vlans.as_slice()).unwrap_or_default()));
+        }
     }
     fields
 }
@@ -725,6 +731,74 @@ mod tests {
             ..nb_iface(1, "Ethernet1/1")
         }]);
         assert_eq!(diff(&want([port]), &current, false), nothing());
+    }
+
+    // A trunk of a configuration report: the report gives its mode, neither its
+    // native VLAN nor the VLANs it allows.
+    #[test]
+    fn a_mode_told_without_its_vlans_leaves_the_vlans_netbox_has() {
+        let trunk = Interface {
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: None, tagged_vlans: Vec::new() }),
+            untagged_vlan_managed: false,
+            tagged_vlans_managed: false,
+            ..eth()
+        };
+        let current = device([NbInterface {
+            mode: Some("access".to_owned()),
+            untagged_vlan: Some(3),
+            tagged_vlans: vec![10, 11],
+            ..nb_iface(1, "Ethernet1/1")
+        }]);
+        let (changes, _) = diff(&want([trunk]), &current, false);
+        assert_eq!(
+            changes,
+            [change("interface", Action::Update, "Ethernet1/1")
+                .fields([("mode", json!("tagged"))])
+                .before([("mode", json!("access"))])
+                .id(1)]
+        );
+    }
+
+    // The same trunk once its description lists its VLANs: the list is written,
+    // the native VLAN still is not known.
+    #[test]
+    fn the_tagged_vlans_are_written_while_the_untagged_one_is_left_as_netbox_has_it() {
+        let trunk = Interface {
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: None, tagged_vlans: vec![10, 12] }),
+            untagged_vlan_managed: false,
+            ..eth()
+        };
+        let current = device([NbInterface {
+            mode: Some("tagged".to_owned()),
+            untagged_vlan: Some(3),
+            tagged_vlans: vec![10, 11],
+            ..nb_iface(1, "Ethernet1/1")
+        }]);
+        let (changes, _) = diff(&want([trunk]), &current, false);
+        assert_eq!(
+            changes,
+            [change("interface", Action::Update, "Ethernet1/1")
+                .fields([("tagged_vlans", json!([10, 12]))])
+                .before([("tagged_vlans", json!([10, 11]))])
+                .id(1)]
+        );
+    }
+
+    // A source that tells the native VLAN of its trunks already keeps it out of the tagged ones.
+    #[test]
+    fn a_native_vlan_the_source_tells_is_compared_as_it_is_told() {
+        let trunk = Interface {
+            dot1q: Some(Dot1q { mode: Mode::Tagged, untagged_vlan: Some(1), tagged_vlans: vec![19, 24] }),
+            ..eth()
+        };
+        let current = device([NbInterface {
+            mode: Some("tagged".to_owned()),
+            untagged_vlan: Some(24),
+            tagged_vlans: vec![19],
+            ..nb_iface(1, "Ethernet1/1")
+        }]);
+        let (changes, _) = diff(&want([trunk]), &current, false);
+        assert_eq!(changes[0].fields, fields([("untagged_vlan", json!(1)), ("tagged_vlans", json!([19, 24]))]));
     }
 
     #[test]

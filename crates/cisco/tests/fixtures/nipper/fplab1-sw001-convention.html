@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Nipper report excerpt</title></head><body>
+<!-- Excerpt of a real Nipper configuration report (2026-11-24): sections General, Simple Network Management Protocol (general table), Interfaces and Switchport Configuration only, credentials removed, then anonymised: names, places, circuits and addresses are fictitious with the shape of the real ones. The stack of fplab1-sw001.html, once its port descriptions follow the convention the README recommends. -->
+<h3>2.2. <a name="con_General">General</a></h3>
+<table class="table">
+ <caption>Table 2: General device settings</caption>
+ <thead>
+  <tr>
+   <th>Description</th>
+   <th>Setting</th>
+  </tr>
+</thead>
+ <tbody>
+<tr><td>Hostname</td><td>FPLAB1-SW001</td></tr>
+<tr><td>IOS Version</td><td>16.3</td></tr>
+<tr><td>Service Password Encryption</td><td>Enabled</td></tr>
+<tr><td>BOOTP</td><td>Enabled</td></tr>
+<tr><td>Service Config</td><td>Disabled</td></tr>
+<tr><td>TCP Keep Alives (In)</td><td>Enabled</td></tr>
+<tr><td>TCP Keep Alives (Out)</td><td>Enabled</td></tr>
+<tr><td>Gratuitous ARPs</td><td>Disabled</td></tr>
+ </tbody>
+</table>
+&nbsp;<br>
+
+<h3>2.8. <a name="con_SimpleNetworkManagementProtocol">Simple Network Management Protocol</a></h3>
+Simple Network Management Protocol (SNMP) is widely used to assist network administrators in monitoring and managing a variety of network devices. There are three main versions of SNMP in use. Versions 1 and 2 of SNMP are secured with a community string, both authenticate and transmit network packets with no encryption. SNMP version 3 provides three authentication methods. SNMP version 3 No-Auth access requires a username to authenticate and provides no encryption. SNMP version 3 Auth access requires a username and the auth keyword, authentication is encrypted but SNMP network packets are transmitted with no encryption. SNMP version 3 Auth and Priv access requires a username, auth and priv keywords. SNMP version 3 Auth and Priv access provides complete encryption of authentication and SNMP network packets.<br>
+&nbsp;<br>
+<table class="table">
+ <caption>Table 9: General SNMP service configuration</caption>
+ <thead>
+  <tr>
+   <th>Description</th>
+   <th>Setting</th>
+  </tr>
+</thead>
+ <tbody>
+<tr><td>Service enabled</td><td>Yes</td></tr>
+<tr><td>Contact</td><td>FR TEAM - noc@example.net</td></tr>
+<tr><td>Location</td><td>Customer:EXAMPLE - Rack: SITE1 R01</td></tr>
+<tr><td>Trap Timeout</td><td>30 seconds</td></tr>
+<tr><td>Trap Source Interface</td><td>GigabitEthernet0/0</td></tr>
+<tr><td>TFTP Server List</td><td>Disabled</td></tr>
+ </tbody>
+</table>
+<h3>2.15. <a name="con_Interfaces">Interfaces</a></h3>
+<table class="table">
+ <caption>Table 21: Interfaces</caption>
+ <thead>
+  <tr>
+   <th>Interface</th>
+   <th>Active</th>
+   <th>IP Address</th>
+   <th>Proxy ARP</th>
+   <th>IP Unreachable</th>
+   <th>IP Redirect</th>
+   <th>IP Mask Reply</th>
+   <th>IP Direct Broadcast</th>
+   <th>NTP</th>
+   <th>CDP</th>
+   <th>MOP</th>
+  </tr>
+</thead>
+ <tbody>
+<tr><td>Port-channel1</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel2</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel6</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel7</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel8</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel9</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel10</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel11</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel12</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel13</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel14</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel15</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel16</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel17</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel18</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel19</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel24</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel25</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel39</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel40</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel41</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel42</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel43</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel44</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel45</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Port-channel56</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet0/0</td><td>Yes</td><td>192.0.2.1 255.255.248.0</td><td>On</td><td>On</td><td>On</td><td>Off</td><td>Off</td><td>On</td><td>On</td><td>On</td></tr>
+<tr><td>GigabitEthernet1/0/1</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/2</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/3</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/4</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/5</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/6</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/7</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/8</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/9</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/10</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/11</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/12</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/13</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/14</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/15</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/16</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/17</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/18</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/19</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/20</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/21</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/22</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/23</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/24</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/25</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/26</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/27</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/28</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/29</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/30</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/31</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/32</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/33</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/34</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/35</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet1/0/36</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/37</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/38</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/39</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/40</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/41</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/42</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/43</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/44</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/45</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/46</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/47</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/0/48</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/1</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/2</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/3</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/4</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/5</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/6</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/7</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet1/1/8</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/1</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/2</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/3</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/4</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/5</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/6</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/7</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/8</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/9</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/10</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/11</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/12</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/13</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/14</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/15</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/16</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/17</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/18</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/19</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/20</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/21</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/22</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/23</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/24</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/25</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/26</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/27</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/28</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/29</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/30</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/31</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/32</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/33</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/34</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/35</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>GigabitEthernet2/0/36</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/37</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/38</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/39</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/40</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/41</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/42</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/43</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/44</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/45</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/46</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/47</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/0/48</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/1</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/2</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/3</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/4</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/5</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/6</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/7</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>TenGigabitEthernet2/1/8</td><td>Yes</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Vlan1</td><td>No</td><td>None</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td><td>N/A</td></tr>
+<tr><td>Vlan4</td><td>Yes</td><td>192.0.2.2 255.255.255.0</td><td>Off</td><td>Off</td><td>Off</td><td>Off</td><td>Off</td><td>On</td><td>N/A</td><td>On</td></tr>
+ </tbody>
+</table>
+&nbsp;<br>
+
+<h3>2.17. <a name="con_SwitchportConfiguration">Switchport Configuration</a></h3>
+<table class="table">
+ <caption>Table 23: Switchport configuration</caption>
+ <thead>
+  <tr>
+   <th>Interface</th>
+   <th>Active</th>
+   <th>Description</th>
+   <th>VLAN</th>
+   <th>Mode</th>
+   <th>Port Security</th>
+   <th>Security Violation</th>
+  </tr>
+</thead>
+ <tbody>
+<tr><td>Port-channel1</td><td>Yes</td><td>[No Monitor] lab1-fw01.prod/PO1/1G V:954</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel2</td><td>Yes</td><td>lab1-fw01.prod/PO2/10G V:4,10-12,15,17-18,24-25,27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel6</td><td>Yes</td><td>lab1-rt02.prod/Port-channel6/1G V:952,954,1511 IP: Outside: Vlan 1511 : 192.0.2.4 / Interco RT-FW: Vlan 954 : 192.0.2.5</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel7</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel8</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel9</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel10</td><td>Yes</td><td>PRVL1-LEA2201/PRVL1-LEA2202 - ETH1/12 ACI-UPLINK</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel11</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel12</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel13</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel14</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel15</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel16</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel17</td><td>Yes</td><td>lab1-db05.prod/bond0/1G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel18</td><td>Yes</td><td>[No Monitor] lab1-c190-01.prod/a0a/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel19</td><td>Yes</td><td>[No Monitor] lab1-c190-02.prod/a0a/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel24</td><td>Yes</td><td>lab1-pre01.prod/bond0/1G T:HOU V:12</td><td>12</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel25</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel39</td><td>Yes</td><td>lab1-db06.prod/bond0/10G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel40</td><td>Yes</td><td>lab1-pve01.prod/bond0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel41</td><td>Yes</td><td>lab1-pve01.prod/bond2/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel42</td><td>Yes</td><td>lab1-pve01.prod/bond1/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel43</td><td>Yes</td><td>lab1-pve02.prod/bond0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel44</td><td>Yes</td><td>lab1-pve02.prod/bond2/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel45</td><td>Yes</td><td>lab1-pve02.prod/bond1/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>Port-channel56</td><td>Yes</td><td>CTA/CTB/LE-143095 - CTA/CTB/LE-143135</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet0/0</td><td>Yes</td><td>N:sw01-c2-s1.adm Gi0/46 and sw02-c2-s1.adm Gi0/46</td><td>1</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/1</td><td>No</td><td>N:Unused-Interface</td><td>1511</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/2</td><td>No</td><td>N:Unused-Interface</td><td>952</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/3</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/4</td><td>No</td><td>N:Unused-Interface</td><td>5</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/5</td><td>Yes</td><td>lab1-rt02.prod/GigabitEthernet0/0 V:952,954,1511 D:Interco-Directe</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/6</td><td>Yes</td><td>[No Monitor] lab1-fw01.prod/wan1 D:sans V:952 T:HST</td><td>952</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/7</td><td>Yes</td><td>lab1-fw01.prod/ha1/1G V:6</td><td>6</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/8</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/9</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/10</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/11</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/12</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/13</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/14</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/15</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/16</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/17</td><td>Yes</td><td>lab1-db05.prod/eno1/1G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/18</td><td>Yes</td><td>lab1-esx03.prod/vmnic2/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/19</td><td>Yes</td><td>lab1-esx03.prod/vmnic0/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/20</td><td>Yes</td><td>lab1-esx02.prod/vmnic2/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/21</td><td>Yes</td><td>lab1-esx02.prod/vmnic3/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/22</td><td>Yes</td><td>lab1-esx01.prod/vmnic2/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/23</td><td>Yes</td><td>lab1-esx01.prod/vmnic0/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/24</td><td>Yes</td><td>lab1-pre01.prod/eth0/1G T:HOU V:12</td><td>12</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/25</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/26</td><td>Yes</td><td>lab1-pve01.prod/eno1/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/27</td><td>Yes</td><td>[No Monitor] drac-lab1-pve01.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/28</td><td>Yes</td><td>lab1-pve02.prod/eno1/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/29</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/30</td><td>Yes</td><td>[No Monitor] lab1-c190-01.prod/e0M/1G V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/31</td><td>No</td><td>LIBRE</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/32</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/33</td><td>Yes</td><td>N:Unused-Interface</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/34</td><td>Yes</td><td>[No Monitor] drac-lab1-esx01.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/35</td><td>Yes</td><td>[No Monitor] drac-lab1-esx02.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet1/0/36</td><td>Yes</td><td>[No Monitor] drac-lab1-esx03.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/37</td><td>Yes</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/38</td><td>Yes</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/39</td><td>Yes</td><td>lab1-db06.prod/eno1/10G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/40</td><td>Yes</td><td>lab1-pve01.prod/enp129s0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/41</td><td>Yes</td><td>lab1-pve01.prod/enp129s0d1/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/42</td><td>Yes</td><td>lab1-pve02.prod/ens1f0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/43</td><td>Yes</td><td>lab1-pve02.prod/ens1f1/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/44</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/45</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/46</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/47</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/0/48</td><td>Yes</td><td>lab1-fw01.prod/x1/10G V:4,10-12,15,17-18,24-25,27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/1</td><td>Yes</td><td>lab1-esx01.prod/vmnic5/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/2</td><td>Yes</td><td>lab1-esx02.prod/vmnic5/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/3</td><td>Yes</td><td>lab1-esx03.prod/vmnic5/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/4</td><td>Yes</td><td>[No Monitor] lab1-c190-01.prod/e0c/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/5</td><td>Yes</td><td>[No Monitor] lab1-c190-02.prod/e0c/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/6</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/7</td><td>Yes</td><td>PRVL1-LEA2201 ETH1/12 ACI-UPLINK XC:MMF/DH1/MF-202511</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet1/1/8</td><td>Yes</td><td>N:CIRCUIT CTA/CTB/LE-143095 V:4-7,10-12,14-22,24-27,952,954</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/1</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/2</td><td>Yes</td><td>lab1-rt02.prod/GigabitEthernet0/2 V:952,954,1511 D:Interco-Directe</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/3</td><td>Yes</td><td>router RMN (via SFR) (D3-4-6) (D3-2-7) D:LA03-KB19/04</td><td>17</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/4</td><td>Yes</td><td>lab1-adsl01 IP : 192.0.2.12 V:12</td><td>12</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/5</td><td>No</td><td>CTB/CTA/IA-133772</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/6</td><td>Yes</td><td>[No Monitor] lab1-fw01.prod/wan2/1G D:sans V:954 T:HST IP:192.0.2.8/255.255.255.240</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/7</td><td>Yes</td><td>lab1-fw01.prod/ha2/1G V:7</td><td>7</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/8</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/9</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/10</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/11</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/12</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/13</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/14</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/15</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/16</td><td>No</td><td>N:Unused-Interface</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/17</td><td>Yes</td><td>lab1-db05.prod/eno2/1G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/18</td><td>Yes</td><td>lab1-esx03.prod/vmnic3/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/19</td><td>Yes</td><td>lab1-esx03.prod/vmnic1/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/20</td><td>Yes</td><td>lab1-esx02.prod/vmnic0/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/21</td><td>Yes</td><td>lab1-esx02.prod/vmnic1/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/22</td><td>Yes</td><td>lab1-esx01.prod/vmnic3/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/23</td><td>Yes</td><td>lab1-esx01.prod/vmnic1/1G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/24</td><td>Yes</td><td>lab1-pre01.prod/eth1/1G T:HOU V:12</td><td>12</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/25</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/26</td><td>Yes</td><td>lab1-pve01.prod/eno2/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/27</td><td>Yes</td><td>[No Monitor] drac-lab1-pve02.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/28</td><td>Yes</td><td>lab1-pve02.prod/eno2/1G V:19-20,24</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/29</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/30</td><td>Yes</td><td>[No Monitor] lab1-c190-02.prod/e0M/1G V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/31</td><td>Yes</td><td>N:Unused-Interface</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/32</td><td>No</td><td>N:Unused-Interface</td><td>10</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/33</td><td>Yes</td><td>N:Unused-Interface</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/34</td><td>Yes</td><td>[No Monitor] drac-lab1-pre01.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/35</td><td>Yes</td><td>[No Monitor] drac-lab1-db06.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>GigabitEthernet2/0/36</td><td>Yes</td><td>[No Monitor] drac-lab1-db05.prod V:18</td><td>18</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/37</td><td>Yes</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/38</td><td>Yes</td><td>N:Unused-Interface</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/39</td><td>Yes</td><td>lab1-db06.prod/eno2/10G V:11</td><td>11</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/40</td><td>Yes</td><td>lab1-pve01.prod/enp130s0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/41</td><td>Yes</td><td>lab1-pve01.prod/enp130s0d1/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/42</td><td>Yes</td><td>lab1-pve02.prod/ens2f0/10G V:10-12</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/43</td><td>Yes</td><td>lab1-pve02.prod/ens2f1/10G V:25-27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/44</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/45</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/46</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/47</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/0/48</td><td>Yes</td><td>lab1-fw01.prod/x2/10G V:4,10-12,15,17-18,24-25,27</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/1</td><td>Yes</td><td>lab1-esx01.prod/vmnic4/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/2</td><td>Yes</td><td>lab1-esx02.prod/vmnic4/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/3</td><td>Yes</td><td>lab1-esx03.prod/vmnic4/10G V:10-12,17-18,21-25</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/4</td><td>Yes</td><td>[No Monitor] lab1-c190-01.prod/e0d/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/5</td><td>Yes</td><td>[No Monitor] lab1-c190-02.prod/e0d/10G V:all</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/6</td><td>No</td><td>N:Unused-Interface</td><td>2</td><td>Access</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/7</td><td>Yes</td><td>PRVL1-LEA2202 ETH1/12 ACI-UPLINK XC:MMF/DH1/MF-202510</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+<tr><td>TenGigabitEthernet2/1/8</td><td>Yes</td><td>N:CIRCUIT CTA/CTB/LE-143135 V:4-7,10-12,14-22,24-27,952,954</td><td>2</td><td>Trunk</td><td>Off</td><td>Shutdown</td></tr>
+ </tbody>
+</table>
+&nbsp;<br>
+
+
+</body></html>

@@ -122,7 +122,7 @@ versions were recorded:
 | Proxmox VE | `crates/proxmox/tests/fixtures/<release>/api.json` (`8.4`, `9.2`) | One JSON object: API path (what follows `/api2/json`) to `{"status": <HTTP status>, "body": <answer>}`. Loaded by `fixture("<release>")` in `crates/proxmox/tests/common/mod.rs`, which serves it from a mock API |
 | Cisco NX-OS | `crates/cisco/tests/fixtures/nxos_i2/`, `nxos_i4/` (two NX-OS trains) | One file per command, named after the command with every non-alphanumeric character replaced by `_`, then `.txt` (`show vlan brief \| json` is `show_vlan_brief___json.txt`). Loaded by `fixture_text(<directory>, <command>)` in `crates/cisco/src/parsers/mod.rs` |
 | Cisco IOS | `crates/cisco/tests/fixtures/ios/` | Same as NX-OS |
-| Nipper | `crates/cisco/tests/fixtures/nipper/<switch>.html` | One report excerpt per switch, loaded by `nipper_report(<switch>)` |
+| Nipper | `crates/cisco/tests/fixtures/nipper/<switch>.html` | One report excerpt per switch, loaded by `nipper_report(<switch>)`. `crates/cisco/tests/fixtures/README.md` says what the columns of a report were observed to mean |
 | FortiOS | `crates/fortios/tests/fixtures/<version>/` (`7.4.13`) | One file per API call, named like the Cisco ones, loaded by `fixture_text(<version>, <call>)` in `crates/fortios/src/parser.rs` |
 | Redfish (BMC) | `crates/redfish/tests/fixtures/<family>/api.json` (iDRAC 7, 8 and 9, iLO 4; one directory per BMC family and firmware) | One JSON object: request path to `{"status": <HTTP status>, "body": <answer>}`, an empty body being `""`. Loaded by `fixture("<family>")` in `crates/redfish/tests/common/mod.rs`, which serves it from a mock BMC. `crates/redfish/tests/fixtures/README.md` says what each one is and what was never observed |
 

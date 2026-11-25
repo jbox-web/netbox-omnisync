@@ -7,6 +7,9 @@ use serde_json::json;
 
 use crate::change::{Action, Change};
 
+use super::model::Mode;
+use super::names::interface_key;
+use super::stack::DesiredDevice;
 use super::state::NbDevice;
 
 /// Where the VLANs of a device are kept in NetBox: at its site, or in the
@@ -185,9 +188,161 @@ pub fn mark_foreign_vlans(device: &mut NbDevice, group_vlans: &BTreeMap<u16, (u6
     }
 }
 
+/// Takes the VLANs that are not in `held` out of the ports of `device`, and
+/// gives them.
+///
+/// For a source that names no VLAN (a configuration report): the VLANs of
+/// its ports are only numbers, and one NetBox does not hold cannot be
+/// created. `held` is every VLAN number of the home of the device, the VLANs
+/// this run creates there included. An access VLAN left out is unknown to
+/// NetBox, not absent from the port: the one the port has there is kept.
+pub fn leave_out_missing_vlans(device: &mut DesiredDevice, held: &BTreeSet<u16>) -> BTreeSet<u16> {
+    let mut missing = BTreeSet::new();
+    for interface in device.interfaces.values_mut() {
+        let Some(dot1q) = interface.dot1q.as_mut() else {
+            continue;
+        };
+        if let Some(vid) = dot1q.untagged_vlan.filter(|vid| !held.contains(vid)) {
+            missing.insert(vid);
+            dot1q.untagged_vlan = None;
+            interface.untagged_vlan_managed = false;
+        }
+        missing.extend(dot1q.tagged_vlans.iter().filter(|vid| !held.contains(vid)));
+        dot1q.tagged_vlans.retain(|vid| held.contains(vid));
+    }
+    missing
+}
+
+/// Settles what NetBox holds as the untagged VLAN of the trunks of `device`
+/// whose source does not tell their native VLAN (a configuration report).
+///
+/// Such a source lists the VLANs a trunk allows, the native one among them,
+/// and leaves the untagged VLAN of the port as NetBox has it. On a port
+/// NetBox has as a trunk, that VLAN is its native one, entered by who knew
+/// it: it is not repeated among the tagged VLANs, as a switch that tells its
+/// native VLAN does not repeat it (`dot1q::trunk`). On a port NetBox has as
+/// an access port, it is the access VLAN of a port that is no longer one:
+/// nobody told it as a native VLAN, and it is cleared.
+///
+/// Read before `mark_foreign_vlans`, which hides the number of a VLAN of the
+/// site once the site is in a group.
+pub fn settle_native_vlans(device: &mut DesiredDevice, current: &NbDevice) {
+    for (name, interface) in &mut device.interfaces {
+        let Some(dot1q) = interface.dot1q.as_mut().filter(|dot1q| dot1q.mode != Mode::Access) else {
+            continue;
+        };
+        let Some(held) = current.interfaces.get(&interface_key(name)) else {
+            continue;
+        };
+        if interface.untagged_vlan_managed {
+            continue;
+        }
+        if held.mode.as_deref() == Some(Mode::Access.as_str()) {
+            interface.untagged_vlan_managed = true;
+        } else if let Some(native) = held.untagged_vlan {
+            dot1q.tagged_vlans.retain(|vid| *vid != native);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use super::super::model::{Dot1q, Interface};
+    use super::super::state::NbInterface;
     use super::*;
+
+    /// A trunk as a report and its description give it: its tagged VLANs, not its native one.
+    fn report_trunk(name: &str, tagged_vlans: &[u16]) -> Interface {
+        Interface { untagged_vlan_managed: false, ..port(name, Mode::Tagged, None, tagged_vlans) }
+    }
+
+    fn settled(trunk: Interface, held: NbInterface) -> Interface {
+        let mut device = DesiredDevice::new("fplab1-sw001", None);
+        device.interfaces.insert(trunk.name.clone(), trunk.clone());
+        let current = NbDevice {
+            id: 1,
+            name: "fplab1-sw001".to_owned(),
+            site_id: 13,
+            site: String::new(),
+            serial: String::new(),
+            primary_ip4: None,
+            interfaces: BTreeMap::from([(interface_key(&held.name), held)]),
+            ips: Vec::new(),
+        };
+        settle_native_vlans(&mut device, &current);
+        device.interfaces.remove(&trunk.name).expect("the trunk")
+    }
+
+    fn held(mode: &str, untagged_vlan: Option<u16>) -> NbInterface {
+        NbInterface { mode: Some(mode.to_owned()), untagged_vlan, ..NbInterface::new(1, "GigabitEthernet1/0/26") }
+    }
+
+    // The six trunks of each stack whose native VLAN is 24: `GigabitEthernet1/0/26 | Yes |
+    // lab1-pve01.prod/eno1/1G V:19-20,24 | 2 | Trunk` in fplab1-sw001-convention.html, the 24 being
+    // `Trunking Native Mode VLAN` of the port. The report does not give it, NetBox holds it.
+    #[test]
+    fn the_native_vlan_netbox_has_on_a_trunk_is_not_repeated_among_its_tagged_vlans() {
+        let trunk = report_trunk("GigabitEthernet1/0/26", &[19, 20, 24]);
+        assert_eq!(settled(trunk.clone(), held("tagged", Some(24))), report_trunk("GigabitEthernet1/0/26", &[19, 20]));
+        assert_eq!(
+            settled(trunk.clone(), held("tagged-all", Some(24))),
+            report_trunk("GigabitEthernet1/0/26", &[19, 20])
+        );
+        // Without an untagged VLAN in NetBox, or on a port NetBox does not have, the list is whole.
+        assert_eq!(settled(trunk.clone(), held("tagged", None)), trunk);
+        let other = NbInterface { untagged_vlan: Some(24), ..NbInterface::new(2, "GigabitEthernet1/0/27") };
+        assert_eq!(settled(trunk.clone(), other), trunk);
+    }
+
+    // The untagged VLAN of a port NetBox has as an access port is its access VLAN, not the native
+    // VLAN of the trunk the report now says it is: nobody told that one.
+    #[test]
+    fn the_access_vlan_of_a_port_that_became_a_trunk_is_not_taken_for_its_native_vlan() {
+        let trunk = report_trunk("GigabitEthernet1/0/26", &[10, 11, 12]);
+        let wanted = settled(trunk.clone(), held("access", Some(12)));
+        // The whole list is tagged, and the access VLAN is cleared.
+        assert_eq!(wanted, Interface { untagged_vlan_managed: true, ..trunk.clone() });
+        // A trunk without list is cleared of it as well.
+        let bare = Interface { tagged_vlans_managed: false, ..report_trunk("GigabitEthernet1/0/26", &[]) };
+        assert_eq!(settled(bare.clone(), held("access", Some(12))), Interface { untagged_vlan_managed: true, ..bare });
+    }
+
+    // A source that tells the untagged VLAN of its ports is left as it is.
+    #[test]
+    fn a_port_whose_untagged_vlan_the_source_tells_is_not_settled() {
+        let trunk = port("GigabitEthernet1/0/26", Mode::Tagged, Some(1), &[19, 24]);
+        assert_eq!(settled(trunk.clone(), held("tagged", Some(24))), trunk);
+        let access = port("GigabitEthernet1/0/26", Mode::Access, Some(12), &[]);
+        assert_eq!(settled(access.clone(), held("tagged", Some(24))), access);
+    }
+
+    fn port(name: &str, mode: Mode, untagged_vlan: Option<u16>, tagged_vlans: &[u16]) -> Interface {
+        Interface {
+            dot1q: Some(Dot1q { mode, untagged_vlan, tagged_vlans: tagged_vlans.to_vec() }),
+            ..Interface::new(name, true)
+        }
+    }
+
+    #[test]
+    fn the_vlans_netbox_does_not_hold_are_left_out_of_the_ports_and_given() {
+        let mut device = DesiredDevice::new("fplab1-sw001", None);
+        let ports = [
+            port("Gi1/0/1", Mode::Access, Some(1511), &[]),
+            port("Gi1/0/2", Mode::Access, Some(12), &[]),
+            port("Te1/1/8", Mode::Tagged, None, &[4, 10, 12, 952]),
+            Interface::new("Vlan952", true),
+        ];
+        device.interfaces = ports.iter().cloned().map(|port| (port.name.clone(), port)).collect();
+        let missing = leave_out_missing_vlans(&mut device, &BTreeSet::from([10, 12]));
+        assert_eq!(missing, BTreeSet::from([4, 952, 1511]));
+        // The access VLAN NetBox does not hold is not known to it: the one the port has there is kept.
+        let unknown = &device.interfaces["Gi1/0/1"];
+        assert_eq!(unknown.dot1q, Some(Dot1q { mode: Mode::Access, untagged_vlan: None, tagged_vlans: Vec::new() }));
+        assert!(!unknown.untagged_vlan_managed);
+        assert_eq!(device.interfaces["Gi1/0/2"], ports[1]);
+        assert_eq!(device.interfaces["Te1/1/8"], port("Te1/1/8", Mode::Tagged, None, &[10, 12]));
+        assert_eq!(device.interfaces["Vlan952"], ports[3]);
+    }
 
     fn wanted(sources: &[(&str, u16, &str)]) -> BTreeMap<String, BTreeMap<u16, String>> {
         sources

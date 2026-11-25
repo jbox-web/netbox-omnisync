@@ -46,6 +46,14 @@ pub struct Interface {
     /// None with dot1q_managed=true means a routed interface: no 802.1Q mode.
     pub dot1q: Option<Dot1q>,
     pub dot1q_managed: bool,
+    /// False: the source tells the mode of the port and not its untagged VLAN (a
+    /// configuration report does not give the native VLAN of a trunk): the one
+    /// NetBox has is left as it is.
+    pub untagged_vlan_managed: bool,
+    /// False: the source tells the mode of the port and not the VLANs it carries
+    /// tagged (a trunk of a configuration report whose description lists none):
+    /// those NetBox has are left as they are.
+    pub tagged_vlans_managed: bool,
     /// Operational link state; None: no physical link (SVI). Not synced to NetBox: it
     /// keeps the cable of a link that is down from being pruned.
     pub link_up: Option<bool>,
@@ -71,6 +79,8 @@ impl Interface {
             lag_managed: true,
             dot1q: None,
             dot1q_managed: true,
+            untagged_vlan_managed: true,
+            tagged_vlans_managed: true,
             link_up: None,
             parent: None,
             label: None,
@@ -129,6 +139,9 @@ pub struct DeviceState {
     /// False: the source does not tell the IP addresses (a configuration report),
     /// `ips` is empty and the NetBox IPs and primary IP are left as they are.
     pub ips_managed: bool,
+    /// What the collection has to say of what it read, each starting with the
+    /// interface it is about: the run gives them the name of the source.
+    pub warnings: Vec<String>,
 }
 
 impl Default for DeviceState {
@@ -143,6 +156,7 @@ impl Default for DeviceState {
             peer_serials: BTreeMap::new(),
             vlan_names_managed: true,
             ips_managed: true,
+            warnings: Vec::new(),
         }
     }
 }
@@ -192,6 +206,8 @@ mod tests {
         assert_eq!(interface.mtu, None);
         assert!(interface.lag_managed);
         assert!(interface.dot1q_managed);
+        assert!(interface.untagged_vlan_managed);
+        assert!(interface.tagged_vlans_managed);
         assert_eq!(interface.link_up, None);
     }
 

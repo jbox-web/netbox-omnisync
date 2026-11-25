@@ -386,7 +386,10 @@ host = "192.0.2.239"
 
 # How port descriptions name the neighbours, for the cables LLDP and CDP do not
 # give: a regular expression with the named groups host (required) and port
-# (optional). Default: cables from LLDP and CDP only.
+# (optional). A third optional group, vlans, reads the VLANs a description
+# gives (10-12,25 or all): on a switch read over SSH they are only compared
+# with the configuration of the port, and a difference is a warning.
+# Default: cables from LLDP and CDP only.
 # neighbor_pattern = '(?i)\b(?P<host>lab1-(?:pve|esx)\d+)(?:[\s_-]+(?P<port>[a-z0-9]+))?'
 
 # Appended to the host a description names, to give the NetBox device name.
@@ -416,7 +419,9 @@ username = "admin-core"
 
 # A stack nobody may log into (managed by a provider), read from its Nipper
 # configuration report: no connection, no ssh table, and no address read, so
-# host is not needed. Port descriptions are its only source of cables.
+# host is not needed. The report gives the 802.1Q mode of each port and the
+# VLAN of an access port. Port descriptions are its only source of cables,
+# and of the VLANs of its trunks.
 [[sources]]
 name = "fplab1-sw001"
 kind = "switch"
@@ -432,6 +437,13 @@ virtual_chassis = "fplab1-sw001"
 # How port descriptions name the neighbours: named groups host (required) and
 # port (optional). Default: no cable.
 neighbor_pattern = '(?i)\b(?P<host>lab1-(?:pve|esx)\d+)(?:\.prod)?(?:[\s_-]+(?P<port>[a-z0-9]+))?'
+
+# With a third optional group, vlans, the same pattern reads the VLANs of a
+# trunk in its description, in the syntax of "switchport trunk allowed vlan"
+# (10-12,25 or all): a report does not list them. A VLAN NetBox does not hold
+# is left out, never created. This one reads the convention the README
+# recommends, "[No Monitor] <host>/<port>[/<speed>] V:<vlans> <key>:<value>":
+# neighbor_pattern = '(?i)^(?:\[No Monitor\]\s+)?(?:(?:i?drac|ilo)[-\s]+)?(?:(?P<host>[a-z0-9][a-z0-9.-]*)(?:/(?P<port>\S+?))?(?:/\d+[MG])?(?:\s+|$))?(?:.*?\bV:(?P<vlans>\S+))?'
 
 # Appended to the host a description names, to give the NetBox device name.
 # Default: nothing appended.

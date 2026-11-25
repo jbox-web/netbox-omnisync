@@ -17,6 +17,7 @@ use omnisync_core::network::model::DeviceState;
 use omnisync_core::progress::NullProgress;
 use omnisync_core::{Change, Gateway, GatewayError, Outcome};
 use omnisync_fortios::collect::{Fetcher, collect as collect_fortios};
+use regex::Regex;
 use serde_json::{Value, json};
 
 use crate::support::{Netbox, text, url};
@@ -269,6 +270,114 @@ async fn unknown_filter_is_refused() {
             filter: "bogusfilter".to_owned()
         })
     );
+}
+
+/// The stack of `fplab1-sw001-convention.html`, known by its report alone; its
+/// pattern is the one the README gives for the convention it recommends.
+fn report_stack() -> Source {
+    let convention = concat!(
+        r"(?i)^(?:\[No Monitor\]\s+)?(?:(?:i?drac|ilo)[-\s]+)?",
+        r"(?:(?P<host>[a-z0-9][a-z0-9.-]*)(?:/(?P<port>\S+?))?(?:/\d+[MG])?(?:\s+|$))?",
+        r"(?:.*?\bV:(?P<vlans>\S+))?",
+    );
+    let report =
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("../cisco/tests/fixtures/nipper/fplab1-sw001-convention.html");
+    Source {
+        report: Some(report),
+        neighbor_pattern: Some(Regex::new(convention).expect("a valid pattern")),
+        ..Source::new("fplab1-sw001", Kind::Switch, "nipper", "")
+    }
+}
+
+/// The mode of an interface (empty without one), the number of its untagged VLAN and those of its
+/// tagged ones.
+async fn dot1q(netbox: &Netbox, device_id: &str, name: &str) -> (String, Option<u64>, Vec<u64>) {
+    let port = netbox.one("dcim.interfaces", [("device_id", device_id), ("name", name)]).await;
+    let mut tagged: Vec<u64> =
+        port["tagged_vlans"].as_array().into_iter().flatten().filter_map(|vlan| vlan["vid"].as_u64()).collect();
+    tagged.sort_unstable();
+    let mode = port["mode"]["value"].as_str().unwrap_or_default().to_owned();
+    (mode, port["untagged_vlan"]["vid"].as_u64(), tagged)
+}
+
+/// A switch known by its report: NetBox takes the mode of a trunk written
+/// alone, without its native VLAN nor its tagged ones, which it keeps; the
+/// tagged VLANs of a description; a trunk that carries every VLAN; and an
+/// access port whose VLAN it does not hold. A second run has nothing to write.
+#[tokio::test]
+#[ignore = "needs the NetBox Docker stack: mise run dev:test-integration"]
+async fn the_ports_of_a_report_get_their_mode_and_the_vlans_the_report_and_the_descriptions_tell() {
+    let netbox = Netbox::empty().await;
+    let site = netbox.create("dcim.sites", json!({"name": "Falcon", "slug": "falcon", "status": "active"})).await;
+    let maker = netbox.create("dcim.manufacturers", json!({"name": "Cisco", "slug": "cisco"})).await;
+    let model = netbox
+        .create("dcim.device_types", json!({"manufacturer": maker, "model": "C9300-48T", "slug": "c9300-48t"}))
+        .await;
+    let role = netbox.create("dcim.device_roles", json!({"name": "Network switch", "slug": "network-switch"})).await;
+    let device = netbox
+        .create(
+            "dcim.devices",
+            json!({"name": "fplab1-sw001", "device_type": model, "role": role, "site": site, "status": "active"}),
+        )
+        .await;
+    let mut vlan = BTreeMap::new();
+    for (vid, name) in [(3, "Native"), (10, "Production"), (11, "Backoffice"), (12, "Housing")] {
+        let id = netbox.create("ipam.vlans", json!({"site": site, "vid": vid, "name": name, "status": "active"})).await;
+        vlan.insert(vid, id);
+    }
+    // What an operator entered by hand, from the configuration of the switch: the native VLAN of two
+    // trunks, which no report gives, and their tagged VLANs.
+    for name in ["Port-channel10", "Port-channel18", "TenGigabitEthernet1/0/40"] {
+        netbox
+            .create(
+                "dcim.interfaces",
+                json!({
+                    "device": device, "name": name, "type": "other", "mode": "tagged",
+                    "untagged_vlan": vlan[&3], "tagged_vlans": [vlan[&10]],
+                }),
+            )
+            .await;
+    }
+    let device_id = device.to_string();
+    let inventory = inventory(report_stack(), &[]);
+
+    let first = sync(&inventory, &netbox, true).await;
+    assert_eq!(first.errors, Vec::<String>::new());
+    // The VLANs of the ports of the report NetBox does not hold: every access VLAN (2, 5 to 7, 17, 18,
+    // 952, 1511) and every VLAN of a `V:` list of fplab1-sw001-convention.html (4 to 7, 14 to 27, 952,
+    // 954, 1511) but 10, 11 and 12. The other warnings are the descriptions that name no NetBox device.
+    let missing: Vec<&String> = first.warnings.iter().filter(|warning| warning.contains("missing in Netbox")).collect();
+    assert_eq!(
+        missing,
+        ["fplab1-sw001: VLAN 2,4-7,14-27,952,954,1511 of its ports missing in Netbox: left out of them, a report \
+          names no VLAN to create"]
+    );
+    // `Port-channel10 | Yes | PRVL1-LEA2201/PRVL1-LEA2202 - ETH1/12 ... | 2 | Trunk`: no list, its mode alone.
+    assert_eq!(dot1q(&netbox, &device_id, "Port-channel10").await, ("tagged".to_owned(), Some(3), vec![10]));
+    // `TenGigabitEthernet1/0/40 | Yes | lab1-pve01.prod/enp129s0/10G V:10-12 | 2 | Trunk`
+    assert_eq!(
+        dot1q(&netbox, &device_id, "TenGigabitEthernet1/0/40").await,
+        ("tagged".to_owned(), Some(3), vec![10, 11, 12])
+    );
+    // `Port-channel18 | Yes | [No Monitor] lab1-c190-01.prod/a0a/10G V:all | 2 | Trunk`
+    assert_eq!(dot1q(&netbox, &device_id, "Port-channel18").await, ("tagged-all".to_owned(), Some(3), vec![]));
+    // `GigabitEthernet1/0/17 | Yes | lab1-db05.prod/eno1/1G V:11 | 11 | Access`
+    assert_eq!(dot1q(&netbox, &device_id, "GigabitEthernet1/0/17").await, ("access".to_owned(), Some(11), vec![]));
+    // `GigabitEthernet1/0/7 | Yes | lab1-fw01.prod/ha1/1G V:6 | 6 | Access`: VLAN 6 is not in NetBox.
+    assert_eq!(dot1q(&netbox, &device_id, "GigabitEthernet1/0/7").await, ("access".to_owned(), None, vec![]));
+    // `TenGigabitEthernet1/1/8 | Yes | N:CIRCUIT CTA/CTB/LE-143095 V:4-7,10-12,14-22,24-27,952,954 | 2 | Trunk`
+    assert_eq!(
+        dot1q(&netbox, &device_id, "TenGigabitEthernet1/1/8").await,
+        ("tagged".to_owned(), None, vec![10, 11, 12])
+    );
+    // `GigabitEthernet0/0 | Yes | ... | 1 | Access`, the routed management port: no mode.
+    assert_eq!(dot1q(&netbox, &device_id, "GigabitEthernet0/0").await, (String::new(), None, vec![]));
+    // No VLAN was created.
+    assert_eq!(netbox.list("ipam.vlans", []).await.len(), 4);
+
+    let second = sync(&inventory, &netbox, false).await;
+    assert_eq!(second.errors, Vec::<String>::new());
+    assert_eq!(second.changes, Vec::<Change>::new());
 }
 
 fn firewall() -> Source {

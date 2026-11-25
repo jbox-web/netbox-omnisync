@@ -534,6 +534,29 @@ source (`lag_managed`, `dot1q_managed`, `ips_managed`, `vlan_names_managed`):
 a Nipper report tells neither addresses nor LAG membership, a firewall does
 not name VLANs.
 
+The 802.1Q of a port is three fields, and a source may know the first alone:
+`dot1q_managed` says its mode is known, `untagged_vlan_managed` and
+`tagged_vlans_managed` say each of the two others is. A Nipper report gives
+the mode of a port and its access VLAN, whatever the mode: the native VLAN
+of a trunk and the VLANs it allows are in no column
+(`crates/cisco/tests/fixtures/README.md`). The trunk of a report is therefore
+`tagged` with both unmanaged, until its description gives its VLANs
+(`descriptions::vlans_from_descriptions`, the optional group `vlans` of
+`neighbor_pattern`, read as the list of `switchport trunk allowed vlan`, `all`
+included): its tagged VLANs are then managed, its native one never is. Before
+the VLAN step, which hides the number of a VLAN of a site that joined a group,
+the run settles what NetBox holds there (`vlans::settle_native_vlans`): the
+untagged VLAN of a port NetBox has as a trunk is its native one and is taken
+out of the list, where a switch that tells its native VLAN does it itself
+(`dot1q::trunk`); the one of a port NetBox has as an access port is cleared. The
+reading has nothing of the rules of the cables: a port-channel, a disabled
+port, a port whose neighbour is announced are read. On a switch whose
+configuration was read, the same group is only compared with it, on the
+VLANs the switch defines, the only ones the collection keeps
+(`descriptions::vlans_against_descriptions`). What these readings have to
+say travels with the state (`DeviceState::warnings`, each starting with its
+port), and the run starts them with the name of the source.
+
 ### The five steps of a run
 
 `crates/cli/src/network.rs`. The order is what makes each write valid:
@@ -556,7 +579,12 @@ not name VLANs.
    step rewrites it: with the VLAN of the group, or with nothing when the
    device no longer puts a VLAN there. A VLAN whose name another VLAN of the
    group has is not created (an error naming both) nor renamed (a warning),
-   unless a rename of the same step frees it.
+   unless a rename of the same step frees it. A report defines no VLAN, so
+   this step creates none for its ports: once it is done, a VLAN of a port of
+   a report that its home does not hold (`vlans::leave_out_missing_vlans`) is
+   left out of the port, where the device step would fail on it, and told in
+   one warning per source. The access VLAN left out becomes unmanaged, not
+   empty.
 3. **Devices**, one after the other. Inside a device
    (`crates/netbox/src/apply.rs`):
    1. interfaces created or updated, each after the LAG and the parent it
