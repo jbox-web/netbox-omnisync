@@ -1,5 +1,9 @@
 # A disposable NetBox for the integration tests (`mise run dev:test-integration`).
 # Every value below is a throwaway of this stack, which never leaves the loopback.
+#
+# The task names the project after the checkout (COMPOSE_PROJECT_NAME, which
+# wins over the name below) and Docker chooses the port: two checkouts, or two
+# worktrees, run their tests at the same time, each on its own stack.
 name: netbox-omnisync-integration
 
 services:
@@ -26,7 +30,8 @@ services:
       DJANGO_SUPERUSER_PASSWORD: admin-integration
       DJANGO_SUPERUSER_EMAIL: admin@example.com
     ports:
-      - "127.0.0.1:8765:8080"
+      # No host port: Docker takes a free one, which the task reads back.
+      - "127.0.0.1::8080"
     healthcheck:
       # The login page answers once NetBox serves requests; curl is in every image.
       test: ["CMD", "curl", "-fsS", "-o", "/dev/null", "http://localhost:8080/login/"]

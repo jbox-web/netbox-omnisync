@@ -19,7 +19,7 @@ use omnisync_core::{Change, Gateway, GatewayError, Outcome};
 use omnisync_fortios::collect::{Fetcher, collect as collect_fortios};
 use serde_json::{Value, json};
 
-use crate::support::{Netbox, URL, text};
+use crate::support::{Netbox, text, url};
 
 /// The recorded outputs of nexus01 (NX-OS I2), in the Cisco crate.
 fn nxos_i2() -> PathBuf {
@@ -86,7 +86,7 @@ fn inventory(source: Source, domains: &[&str]) -> Inventory {
     Inventory {
         sources: vec![source],
         domains: domains.iter().map(|domain| (*domain).to_owned()).collect(),
-        netbox_url: URL.to_owned(),
+        netbox_url: url().to_owned(),
         netbox_token: Wanted::Held(Secret::new("unused")),
         aliases: BTreeMap::new(),
     }

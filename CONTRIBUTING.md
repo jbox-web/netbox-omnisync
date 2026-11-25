@@ -65,6 +65,12 @@ CI runs them every Monday and on demand (`workflow_dispatch`), with
 The same run without them (a push) takes about 11 minutes, the macOS
 universal binary being the longest job.
 
+The task starts a stack of its own and destroys it whatever ends it. The
+Compose project is named after the path of the checkout and Docker chooses
+the port NetBox is published on (the tests are given it in
+`NETBOX_INTEGRATION_URL`): two checkouts, or two worktrees of the repository,
+run their integration tests at the same time without sharing anything.
+
 They run the real client and both runs against a disposable NetBox
 (`crates/cli/tests/integration`, with its `docker-compose.yml`), of the
 release `NETBOX_VERSION` names (`v4.5.10` when it is not set; CI runs each
