@@ -130,9 +130,10 @@ async fn provision_token() -> String {
     token
 }
 
-/// The custom fields netbox-ssot defined on the NetBox it ran on. The Proxmox
-/// translation fills them and the tool does not create them: they stand for
-/// what the old tool left behind.
+/// The custom fields netbox-ssot defined on the NetBox it ran on: what the
+/// old tool left behind, on more object types than this tool fills them on,
+/// and `arp_entry` with its default. A run creates the ones a NetBox lacks
+/// (`Netbox::without_custom_fields`); here it finds them all.
 async fn ensure_custom_fields(client: &NetboxClient) {
     let source_types = [
         "dcim.device",
@@ -196,9 +197,10 @@ pub struct Netbox {
 
 impl Netbox {
     /// Waits for its turn, then for NetBox, and deletes what the previous test
-    /// left. The custom fields of netbox-ssot are defined.
+    /// left, its custom fields included: a test may have left one as no other
+    /// expects it. The custom fields of netbox-ssot are then defined.
     pub async fn empty() -> Self {
-        let netbox = Netbox::emptied(&ENDPOINTS).await;
+        let netbox = Netbox::without_custom_fields().await;
         ensure_custom_fields(&netbox.client).await;
         netbox
     }

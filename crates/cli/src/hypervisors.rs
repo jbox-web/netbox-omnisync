@@ -10,7 +10,8 @@ use std::time::Duration;
 
 use futures::StreamExt;
 use futures::future::join_all;
-use omnisync_core::Gateway;
+use omnisync_core::change::{Action, Change};
+use omnisync_core::inventory::custom_fields;
 use omnisync_core::inventory::dns::{Asked, ReverseDns};
 use omnisync_core::inventory::guard::{Guarded, admit};
 use omnisync_core::inventory::model::{Desired, Kind, LEGACY_TAG_MARKERS, SOURCE_TAG_PREFIX, VlanGroups};
@@ -20,6 +21,7 @@ use omnisync_core::inventory::reconcile::{
 use omnisync_core::network::hosts::Heard;
 use omnisync_core::outcome::Outcome;
 use omnisync_core::progress::Progress;
+use omnisync_core::{Gateway, Row, Write};
 use omnisync_netbox::inventory_apply::{DryRun, apply};
 use omnisync_netbox::inventory_state::load_shown;
 use omnisync_proxmox::translate::{Settings, desired};
@@ -498,43 +500,102 @@ pub fn source_tag(name: &str) -> String {
 /// What a BMC tells of a device, and a hypervisor may know as well.
 const HARDWARE_FIELDS: [&str; 2] = ["device_type", "serial"];
 
-/// The endpoint of the custom field definitions.
-const CUSTOM_FIELDS: &str = "extras.custom_fields";
-
-/// Refuses custom fields NetBox does not define for the kind of object they
-/// are reported on. NetBox refuses a write that carries one
-/// (`extras/api/customfields.py`, 4.5 to 4.7): met at its write, the run would
-/// stop half way through its plan, after the writes before it.
-async fn undefined_custom_fields<G: Gateway>(gateway: &G, desired: &[Desired]) -> Result<(), String> {
-    let used: BTreeSet<(Kind, &str)> = desired
-        .iter()
-        .flat_map(|object| object.custom_fields.keys().map(move |name| (object.kind, name.as_str())))
-        .collect();
+/// What NetBox has to be given so that the custom fields of `used` can be
+/// written: the definitions to create, and the ones to give an object type
+/// (`custom_fields::plan`). NetBox refuses a write that carries a custom field
+/// it does not define (`extras/api/customfields.py`, 4.5 to 4.7): met at its
+/// write, the run would stop half way through its plan, after the writes
+/// before it. An error when a definition NetBox holds cannot be used as it is.
+async fn missing_definitions<G: Gateway>(gateway: &G, used: &custom_fields::Used) -> Result<Vec<Change>, String> {
     if used.is_empty() {
-        return Ok(());
+        return Ok(Vec::new());
     }
-    let definitions =
-        gateway.list(CUSTOM_FIELDS, &Vec::new()).await.map_err(|error| format!("reading {CUSTOM_FIELDS}: {error}"))?;
-    let defined = |kind: Kind, name: &str| {
-        definitions.iter().any(|definition| {
-            let types = definition.get("object_types").and_then(|types| types.as_array());
-            definition.get("name").and_then(|held| held.as_str()) == Some(name)
-                && types.is_some_and(|types| types.iter().any(|held| held.as_str() == Some(kind.content_type())))
-        })
-    };
-    let missing: Vec<String> = used
-        .into_iter()
-        .filter(|(kind, name)| !defined(*kind, name))
-        .map(|(kind, name)| format!("{name} on {}", kind.label()))
-        .collect();
-    if missing.is_empty() {
-        return Ok(());
+    let endpoint = custom_fields::ENDPOINT;
+    let held = gateway.list(endpoint, &Vec::new()).await.map_err(|error| format!("reading {endpoint}: {error}"))?;
+    custom_fields::plan(used, &held).map_err(|errors| errors.join("; "))
+}
+
+/// A definition that could not be written, after `written` of them were.
+struct Undefined {
+    written: usize,
+    message: String,
+}
+
+/// Writes the definitions the plan needs, before it, and gives the ones it
+/// wrote: not always those of `changes`, another run may have defined a field
+/// since they were worked out. `on_done` is called once per definition of
+/// `changes`.
+///
+/// The definitions are read again before each write: NetBox replaces the
+/// object types of a field with the list it is given, so one built on what
+/// was read before another run added a type would take that type off, and
+/// with it the values of the field. That narrows the window to one request
+/// and does not close it: NetBox has no conditional write. Once something was
+/// written they are read a last time: NetBox may have taken a field offline
+/// to fill its default (4.7), or another run may have written over this one,
+/// and the plan must not start on a field it would be refused.
+///
+/// On a gateway in dry run nothing is written: the fields of each write are
+/// checked against NetBox, as those of the plan are.
+async fn define<G, F>(
+    gateway: &G,
+    used: &custom_fields::Used,
+    changes: &[Change],
+    on_done: F,
+) -> Result<Vec<Change>, Undefined>
+where
+    G: Gateway + DryRun,
+    F: Fn(),
+{
+    let endpoint = custom_fields::ENDPOINT;
+    let name = |change: &Change| format!("{} {} {}", change.action, change.kind, change.key);
+    if gateway.dry_run() {
+        for change in changes {
+            let write = if change.action == Action::Create { Write::Create } else { Write::Update };
+            let fields: Vec<String> = change.fields.keys().cloned().collect();
+            if let Err(error) = gateway.check_write(write, endpoint, &fields).await {
+                return Err(Undefined { written: 0, message: format!("{}: {error}", name(change)) });
+            }
+        }
+        return Ok(Vec::new());
     }
-    let plural = if missing.len() == 1 { "it" } else { "them" };
-    Err(format!(
-        "NetBox defines no custom field {}: create {plural} before syncing; nothing was written",
-        missing.join(", ")
-    ))
+    let mut written: Vec<Change> = Vec::new();
+    for change in changes {
+        let one: custom_fields::Used = used
+            .iter()
+            .filter(|(field, _)| **field == change.key)
+            .map(|(field, kinds)| (field.clone(), kinds.clone()))
+            .collect();
+        let fresh = match missing_definitions(gateway, &one).await {
+            Ok(fresh) => fresh,
+            Err(message) => return Err(Undefined { written: written.len(), message }),
+        };
+        for change in fresh {
+            let payload: Row = change.fields.clone().into_iter().collect();
+            let sent = match (change.action, change.id) {
+                (Action::Create, _) => gateway.create(endpoint, &payload).await.map(|_| ()),
+                (_, Some(id)) => gateway.update(endpoint, id, &payload).await,
+                (_, None) => Err(omnisync_core::GatewayError::Request("no id to write it to".to_owned())),
+            };
+            if let Err(error) = sent {
+                return Err(Undefined { written: written.len(), message: format!("{}: {error}", name(&change)) });
+            }
+            written.push(change);
+        }
+        on_done();
+    }
+    if written.is_empty() {
+        return Ok(written);
+    }
+    match missing_definitions(gateway, used).await {
+        Ok(left) if left.is_empty() => Ok(written),
+        Ok(left) => {
+            let names: Vec<&str> = left.iter().map(|change| change.key.as_str()).collect();
+            let message = format!("custom field {} is not in NetBox as it was written", names.join(", "));
+            Err(Undefined { written: written.len(), message })
+        }
+        Err(message) => Err(Undefined { written: written.len(), message }),
+    }
 }
 
 /// Sync the `selected` hypervisor and BMC sources into NetBox. `configured`
@@ -796,11 +857,6 @@ where
         }
     }
 
-    if let Err(message) = undefined_custom_fields(gateway, &desired).await {
-        fail(&mut outcome, message);
-        return (outcome, heard);
-    }
-
     let chosen: BTreeSet<&str> = selected.iter().map(|source| source.name.as_str()).collect();
     let facts = configured.iter().map(|source| SourceFacts {
         name: source.name.clone(),
@@ -840,7 +896,19 @@ where
     desired.extend(ownership_tags(&tagging, &loaded.current));
     progress.step("compare");
     let plan = reconcile(&desired, &loaded.current, &run);
-    outcome.changes = plan.changes();
+    // The custom fields the writes of the plan carry, and no other: a field
+    // nothing writes is neither created nor given an object type. What NetBox
+    // lacks of them is written before the plan; a definition that cannot be
+    // used stops the run here, before any write.
+    let used = custom_fields::used(&plan.steps);
+    let definitions = match missing_definitions(gateway, &used).await {
+        Ok(definitions) => definitions,
+        Err(message) => {
+            fail(&mut outcome, format!("{message}; nothing was written"));
+            return (outcome, heard);
+        }
+    };
+    outcome.changes = definitions.iter().cloned().chain(plan.changes()).collect();
     // Each starts with the source it is about, as its errors do: the check
     // takes it back at the next run of that source alone.
     outcome.warnings.extend(plan.warnings.iter().map(ToString::to_string));
@@ -854,13 +922,29 @@ where
 
     // A dry run writes nothing: its units are all done.
     if !gateway.dry_run() {
-        progress.resize(selected.len() as u64 + STEPS + plan.steps.len() as u64);
+        progress.resize(selected.len() as u64 + STEPS + (definitions.len() + plan.steps.len()) as u64);
     }
     progress.step(if gateway.dry_run() { "nothing is written: dry run" } else { "write" });
+    match define(gateway, &used, &definitions, || progress.advance(None)).await {
+        // A dry run wrote none, and reports the ones it would write.
+        Ok(_) if gateway.dry_run() => {}
+        Ok(written) => {
+            outcome.applied = written.len();
+            // What was written, which another run may have made differ from what was worked out.
+            outcome.changes = written.into_iter().chain(plan.changes()).collect();
+        }
+        // Nothing is written either way: the writes of the plan are checked as well.
+        Err(undefined) if gateway.dry_run() => fail(&mut outcome, undefined.message),
+        Err(undefined) => {
+            outcome.applied = undefined.written;
+            fail(&mut outcome, format!("{}; the plan was not written", undefined.message));
+            return (outcome, heard);
+        }
+    }
     match apply(gateway, &plan, || progress.advance(None)).await {
-        Ok(applied) => outcome.applied = applied.written,
+        Ok(applied) => outcome.applied += applied.written,
         Err(error) => {
-            outcome.applied = error.applied;
+            outcome.applied += error.applied;
             fail(&mut outcome, error.message);
         }
     }
@@ -1135,41 +1219,442 @@ mod tests {
         assert_eq!(outcome.applied, outcome.changes.len());
     }
 
-    /// A cluster carrying a custom field, as a source that fills one reports it.
-    fn cluster_with_custom_field() -> Reading {
-        let mut reading = cluster("pve-a", "lab");
-        let with_field = reading.objects.pop().unwrap().custom_field("source_id", "cluster/lab");
+    /// The cluster `name` carrying a custom field, as a source that fills one reports it.
+    fn cluster_with_custom_field_of(source: &str, name: &str) -> Reading {
+        let mut reading = cluster(source, name);
+        let with_field =
+            reading.objects.pop().unwrap().custom_field(&custom_fields::SOURCE_ID, format!("cluster/{name}"));
         reading.objects.push(with_field);
         reading
     }
 
+    fn cluster_with_custom_field() -> Reading {
+        cluster_with_custom_field_of("pve-a", "lab")
+    }
+
+    /// A definition as somebody made it in NetBox.
+    fn define(netbox: &FakeGateway, name: &str, field_type: &str, types: &[&str]) -> u64 {
+        netbox
+            .add(custom_fields::ENDPOINT, serde_json::json!({"name": name, "type": field_type, "object_types": types}))
+    }
+
+    fn definition(netbox: &FakeGateway, name: &str) -> Row {
+        let id = netbox.find(custom_fields::ENDPOINT, "name", &serde_json::json!(name)).expect("the custom field");
+        netbox.row(custom_fields::ENDPOINT, id).expect("its row")
+    }
+
     #[tokio::test]
-    async fn a_custom_field_netbox_does_not_define_stops_the_run_before_any_write() {
+    async fn a_custom_field_netbox_does_not_define_is_created_before_the_first_write_of_the_plan() {
         // NetBox refuses a write that carries a custom field it does not define:
         // met at that write, the run would stop half way through its plan.
         let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
         let netbox = FakeGateway::new();
-        netbox.add("extras.custom_fields", serde_json::json!({"name": "source_id", "object_types": ["dcim.device"]}));
         let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
         let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        // The field as netbox-ssot named it, on the one kind of object that carries it here.
         assert_eq!(
-            outcome.errors,
-            ["NetBox defines no custom field source_id on cluster: create it before syncing; nothing was written"]
+            outcome.changes[0],
+            Change::new("custom_field", Action::Create, "", "source_id").fields([
+                ("name", serde_json::json!("source_id")),
+                ("type", serde_json::json!("text")),
+                ("label", serde_json::json!("Source ID")),
+                ("description", serde_json::json!("ID of the object on the source API")),
+                ("object_types", serde_json::json!(["virtualization.cluster"])),
+            ])
         );
-        assert_eq!(outcome.changes, []);
-        assert_eq!(netbox.writes(), []);
+        let field = netbox.find(custom_fields::ENDPOINT, "name", &serde_json::json!("source_id")).expect("created");
+        assert_eq!(netbox.writes()[0], ("create", custom_fields::ENDPOINT.to_owned(), field));
+        // No default: NetBox would write it on every cluster there is.
+        assert_eq!(definition(&netbox, "source_id").get("default"), None);
+        let cluster = netbox.find("virtualization.clusters", "name", &serde_json::json!("lab")).expect("written");
+        assert_eq!(
+            netbox.row("virtualization.clusters", cluster).unwrap()["custom_fields"],
+            serde_json::json!({"source_id": "cluster/lab"})
+        );
+        // Every change of the report was written, the definition among them.
+        assert_eq!(outcome.applied, outcome.changes.len());
+    }
+
+    #[tokio::test]
+    async fn a_second_run_creates_nothing() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        run_all(&sources, &netbox, &reader).await;
+        let writes = netbox.writes();
+        let again = run_all(&sources, &netbox, &reader).await;
+        assert_eq!((again.changes, again.errors), (Vec::new(), Vec::new()));
+        assert_eq!(netbox.writes(), writes);
     }
 
     #[tokio::test]
     async fn a_custom_field_netbox_defines_is_written() {
         let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
         let netbox = FakeGateway::new();
-        let types = serde_json::json!(["dcim.device", "virtualization.cluster"]);
-        netbox.add("extras.custom_fields", serde_json::json!({"name": "source_id", "object_types": types}));
+        let field = define(&netbox, "source_id", "text", &["dcim.device", "virtualization.cluster"]);
         let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
         let outcome = run_all(&sources, &netbox, &reader).await;
         assert_eq!(outcome.errors, Vec::<String>::new());
         assert_eq!(created(&outcome, "cluster"), ["lab"]);
+        let cluster = netbox.find("virtualization.clusters", "name", &serde_json::json!("lab")).expect("written");
+        assert_eq!(
+            netbox.row("virtualization.clusters", cluster).unwrap()["custom_fields"],
+            serde_json::json!({"source_id": "cluster/lab"})
+        );
+        // The definition is left as it is.
+        assert!(!outcome.changes.iter().any(|change| change.kind == "custom_field"));
+        assert!(!netbox.writes().iter().any(|(_, endpoint, id)| endpoint == custom_fields::ENDPOINT && *id == field));
+    }
+
+    #[tokio::test]
+    async fn a_custom_field_that_lacks_an_object_type_is_given_it_before_the_plan() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        // Defined by somebody, for devices and for sites.
+        let field = define(&netbox, "source_id", "text", &["dcim.site", "dcim.device"]);
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert_eq!(
+            outcome.changes[0],
+            Change::new("custom_field", Action::Update, "", "source_id")
+                .fields([("object_types", serde_json::json!(["dcim.site", "dcim.device", "virtualization.cluster"]))])
+                .before([("object_types", serde_json::json!(["dcim.site", "dcim.device"]))])
+                .id(field)
+        );
+        assert_eq!(netbox.writes()[0], ("update", custom_fields::ENDPOINT.to_owned(), field));
+        assert_eq!(
+            definition(&netbox, "source_id")["object_types"],
+            serde_json::json!(["dcim.site", "dcim.device", "virtualization.cluster"])
+        );
+        assert_eq!(created(&outcome, "cluster"), ["lab"]);
+    }
+
+    #[tokio::test]
+    async fn a_custom_field_of_another_type_stops_the_run_before_any_write() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        define(&netbox, "source_id", "integer", &["virtualization.cluster"]);
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(
+            outcome.errors,
+            ["custom field source_id is of type integer in NetBox, the tool writes text; nothing was written"]
+        );
+        assert_eq!(outcome.changes, []);
+        assert_eq!(netbox.writes(), []);
+    }
+
+    #[tokio::test]
+    async fn a_custom_field_netbox_refuses_to_create_stops_the_run_before_the_plan() {
+        // A token that may not add a custom field: the first write is refused.
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        netbox.fail_after(Some(0));
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, ["create custom_field source_id: injected failure; the plan was not written"]);
+        assert_eq!(outcome.applied, 0);
+        assert_eq!(netbox.writes(), []);
+    }
+
+    #[tokio::test]
+    async fn a_dry_run_reports_the_custom_fields_it_would_create_and_writes_none() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        netbox.refuse_writes(true);
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert_eq!(created(&outcome, "custom_field"), ["source_id"]);
+        assert_eq!(created(&outcome, "cluster"), ["lab"]);
+        assert_eq!(outcome.applied, 0);
+        // Nothing was written, nor attempted.
+        assert_eq!(netbox.writes(), []);
+        assert_eq!(netbox.refused(), []);
+        assert!(netbox.find(custom_fields::ENDPOINT, "name", &serde_json::json!("source_id")).is_none());
+    }
+
+    #[tokio::test]
+    async fn a_field_two_sources_fill_is_created_once() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox), hypervisor("pve-b", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        let reader = Scripted::answering([
+            ("pve-a", Ok(cluster_with_custom_field_of("pve-a", "lab-a"))),
+            ("pve-b", Ok(cluster_with_custom_field_of("pve-b", "lab-b"))),
+        ]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert_eq!(created(&outcome, "custom_field"), ["source_id"]);
+        assert_eq!(created(&outcome, "cluster"), ["lab-a", "lab-b"]);
+        let defined = netbox.writes().iter().filter(|(_, endpoint, _)| endpoint == custom_fields::ENDPOINT).count();
+        assert_eq!(defined, 1);
+    }
+
+    // A field is created for the writes that carry it, not for what a source
+    // reports: the host of a source that creates no device is never written.
+    #[tokio::test]
+    async fn a_field_no_write_of_the_plan_sends_is_not_created() {
+        let sources = [Hypervisor { create_devices: false, ..hypervisor("pve-a", HypervisorType::Proxmox) }];
+        let netbox = FakeGateway::new();
+        let mut reading = cluster("pve-a", "lab");
+        reading.objects.push(
+            Desired::new(Kind::Device, Identity::device("pve01"), "pve-a")
+                .field("name", "pve01")
+                .custom_field(&custom_fields::HOST_MEMORY, "64 GiB"),
+        );
+        let reader = Scripted::answering([("pve-a", Ok(reading))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert_eq!(
+            outcome.warnings,
+            ["pve-a: device pve01: not in NetBox and create_devices is off for pve-a; skipped with its dependents"]
+        );
+        assert_eq!(created(&outcome, "cluster"), ["lab"]);
+        assert_eq!(created(&outcome, "custom_field"), Vec::<String>::new());
+        assert!(netbox.find(custom_fields::ENDPOINT, "name", &serde_json::json!("host_memory")).is_none());
+    }
+
+    // NetBox 4.7 fills the default of a field on the objects of a type it is
+    // given, and takes the field offline to do so on a large table: a write
+    // that carries the field is then refused. The plan must not start.
+    #[tokio::test]
+    async fn a_field_netbox_takes_offline_once_extended_stops_the_run_before_the_plan() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        netbox.bulk_update_chunk(Some(0));
+        let field = netbox.add(
+            custom_fields::ENDPOINT,
+            serde_json::json!({"name": "source_id", "type": "text", "default": "unknown", "object_types": ["dcim.device"]}),
+        );
+        // A cluster somebody made: one object NetBox has the default to write on.
+        netbox.add("virtualization.clusters", serde_json::json!({"name": "by-hand"}));
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(
+            outcome.errors,
+            ["custom field source_id is provisioning in NetBox: its stored data is being updated; the plan was not \
+              written"]
+        );
+        // The definition was written, and nothing of the plan.
+        assert_eq!(netbox.writes(), [("update", custom_fields::ENDPOINT.to_owned(), field)]);
+        assert_eq!(outcome.applied, 1);
+        assert!(netbox.find("virtualization.clusters", "name", &serde_json::json!("lab")).is_none());
+    }
+
+    /// A NetBox in which somebody else writes `key` of the custom field `field`
+    /// just before this run lists the custom fields for the `at`th time: the
+    /// first list is the one the definitions are worked out from, the second
+    /// the one read again before the write, the third the last one before the plan.
+    struct Meanwhile<'a> {
+        netbox: &'a FakeGateway,
+        field: u64,
+        at: usize,
+        key: &'static str,
+        value: serde_json::Value,
+        listed: Mutex<usize>,
+    }
+
+    impl<'a> Meanwhile<'a> {
+        fn types(netbox: &'a FakeGateway, field: u64, at: usize, types: &[&str]) -> Self {
+            Meanwhile { netbox, field, at, key: "object_types", value: serde_json::json!(types), listed: Mutex::new(0) }
+        }
+
+        async fn run(&self) -> Outcome {
+            let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+            let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+            let selected: Vec<&Hypervisor> = sources.iter().collect();
+            run(&sources, &selected, &[], self, &reader, &NullProgress).await
+        }
+    }
+
+    impl DryRun for Meanwhile<'_> {
+        fn dry_run(&self) -> bool {
+            false
+        }
+    }
+
+    type Answer<T> = Result<T, omnisync_core::GatewayError>;
+
+    impl Gateway for Meanwhile<'_> {
+        async fn list(&self, endpoint: &str, filters: &omnisync_core::Filters) -> Answer<Vec<Row>> {
+            if endpoint == custom_fields::ENDPOINT {
+                let mut listed = self.listed.lock().unwrap();
+                *listed += 1;
+                if *listed == self.at {
+                    self.netbox.set(endpoint, self.field, self.key, self.value.clone());
+                }
+            }
+            self.netbox.list(endpoint, filters).await
+        }
+
+        async fn create(&self, endpoint: &str, payload: &Row) -> Answer<Row> {
+            self.netbox.create(endpoint, payload).await
+        }
+
+        async fn update(&self, endpoint: &str, id: u64, payload: &Row) -> Answer<()> {
+            self.netbox.update(endpoint, id, payload).await
+        }
+
+        async fn delete(&self, endpoint: &str, id: u64) -> Answer<()> {
+            self.netbox.delete(endpoint, id).await
+        }
+
+        async fn check_write(&self, write: Write, endpoint: &str, fields: &[String]) -> Answer<()> {
+            self.netbox.check_write(write, endpoint, fields).await
+        }
+    }
+
+    // NetBox replaces the object types of a field with the list it is given:
+    // a list built before another run added a type would take that type off,
+    // and NetBox would erase the values of the field on it.
+    #[tokio::test]
+    async fn the_object_types_another_run_added_meanwhile_are_kept() {
+        let netbox = FakeGateway::new();
+        let field = define(&netbox, "source_id", "text", &["dcim.device"]);
+        let other_run = ["dcim.device", "virtualization.virtualmachine"];
+        let outcome = Meanwhile::types(&netbox, field, 2, &other_run).run().await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert_eq!(
+            definition(&netbox, "source_id")["object_types"],
+            serde_json::json!(["dcim.device", "virtualization.virtualmachine", "virtualization.cluster"])
+        );
+    }
+
+    // Two hosts run at once: the other one gave the field its type first.
+    // Nothing is left to write, and the report does not say this run wrote it.
+    #[tokio::test]
+    async fn a_definition_another_run_wrote_meanwhile_is_neither_written_nor_reported() {
+        let netbox = FakeGateway::new();
+        let field = define(&netbox, "source_id", "text", &["dcim.device"]);
+        let other_run = ["dcim.device", "virtualization.cluster"];
+        let outcome = Meanwhile::types(&netbox, field, 2, &other_run).run().await;
+        assert_eq!(outcome.errors, Vec::<String>::new());
+        assert!(!outcome.changes.iter().any(|change| change.kind == "custom_field"), "{:?}", outcome.changes);
+        assert!(!netbox.writes().iter().any(|(_, endpoint, _)| endpoint == custom_fields::ENDPOINT));
+        assert_eq!(created(&outcome, "cluster"), ["lab"]);
+        assert_eq!(outcome.applied, outcome.changes.len());
+    }
+
+    // The other host wrote its own list over the one of this run: the type
+    // this run needs is gone again, and its plan would be refused half way.
+    #[tokio::test]
+    async fn a_definition_another_run_wrote_over_stops_the_run_before_the_plan() {
+        let netbox = FakeGateway::new();
+        let field = define(&netbox, "source_id", "text", &["dcim.device"]);
+        let outcome = Meanwhile::types(&netbox, field, 3, &["dcim.device"]).run().await;
+        assert_eq!(
+            outcome.errors,
+            ["custom field source_id is not in NetBox as it was written; the plan was not written"]
+        );
+        assert_eq!(netbox.writes(), [("update", custom_fields::ENDPOINT.to_owned(), field)]);
+        assert_eq!(outcome.applied, 1);
+        assert!(netbox.find("virtualization.clusters", "name", &serde_json::json!("lab")).is_none());
+    }
+
+    #[tokio::test]
+    async fn a_definition_that_changed_its_type_meanwhile_is_not_written_to() {
+        let netbox = FakeGateway::new();
+        let field = define(&netbox, "source_id", "text", &["dcim.device"]);
+        let meanwhile = Meanwhile {
+            netbox: &netbox,
+            field,
+            at: 2,
+            key: "type",
+            value: serde_json::json!("integer"),
+            listed: Mutex::new(0),
+        };
+        let outcome = meanwhile.run().await;
+        assert_eq!(
+            outcome.errors,
+            ["custom field source_id is of type integer in NetBox, the tool writes text; the plan was not written"]
+        );
+        assert_eq!((netbox.writes(), outcome.applied), (Vec::new(), 0));
+    }
+
+    /// The cluster `lab` carrying two custom fields.
+    fn cluster_with_two_custom_fields() -> Reading {
+        let mut reading = cluster_with_custom_field();
+        let with_source = reading.objects.pop().unwrap().custom_field(&custom_fields::SOURCE, "pve-a");
+        reading.objects.push(with_source);
+        reading
+    }
+
+    #[tokio::test]
+    async fn a_definition_that_fails_after_another_was_written_stops_the_run_and_counts_the_first() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        // The second write fails: `source` is created, `source_id` is not.
+        netbox.fail_after(Some(1));
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_two_custom_fields()))]);
+        let outcome = run_all(&sources, &netbox, &reader).await;
+        assert_eq!(outcome.errors, ["create custom_field source_id: injected failure; the plan was not written"]);
+        assert_eq!(outcome.applied, 1);
+        let source = netbox.find(custom_fields::ENDPOINT, "name", &serde_json::json!("source")).expect("created");
+        assert_eq!(netbox.writes(), [("create", custom_fields::ENDPOINT.to_owned(), source)]);
+    }
+
+    /// A NetBox in dry run whose schema knows no `label` on a custom field,
+    /// and which remembers the endpoints whose writes it was asked to check.
+    struct Schemaless<'a> {
+        netbox: &'a FakeGateway,
+        checked: Mutex<Vec<String>>,
+    }
+
+    impl DryRun for Schemaless<'_> {
+        fn dry_run(&self) -> bool {
+            true
+        }
+    }
+
+    impl Gateway for Schemaless<'_> {
+        async fn list(&self, endpoint: &str, filters: &omnisync_core::Filters) -> Answer<Vec<Row>> {
+            self.netbox.list(endpoint, filters).await
+        }
+
+        async fn create(&self, endpoint: &str, payload: &Row) -> Answer<Row> {
+            self.netbox.create(endpoint, payload).await
+        }
+
+        async fn update(&self, endpoint: &str, id: u64, payload: &Row) -> Answer<()> {
+            self.netbox.update(endpoint, id, payload).await
+        }
+
+        async fn delete(&self, endpoint: &str, id: u64) -> Answer<()> {
+            self.netbox.delete(endpoint, id).await
+        }
+
+        async fn check_write(&self, _: Write, endpoint: &str, fields: &[String]) -> Answer<()> {
+            self.checked.lock().unwrap().push(endpoint.to_owned());
+            if endpoint == custom_fields::ENDPOINT && fields.iter().any(|field| field == "label") {
+                let (endpoint, field) = (endpoint.to_owned(), "label".to_owned());
+                return Err(omnisync_core::GatewayError::UnknownField { endpoint, field });
+            }
+            Ok(())
+        }
+    }
+
+    // What a real run would be refused is told by the dry run: the fields of
+    // a definition are checked as those of the plan are, and a definition
+    // that is refused does not keep the plan from being checked.
+    #[tokio::test]
+    async fn a_dry_run_checks_the_fields_of_the_definitions_it_would_write_and_those_of_the_plan() {
+        let sources = [hypervisor("pve-a", HypervisorType::Proxmox)];
+        let netbox = FakeGateway::new();
+        netbox.refuse_writes(true);
+        let schemaless = Schemaless { netbox: &netbox, checked: Mutex::new(Vec::new()) };
+        let reader = Scripted::answering([("pve-a", Ok(cluster_with_custom_field()))]);
+        let selected: Vec<&Hypervisor> = sources.iter().collect();
+        let outcome = run(&sources, &selected, &[], &schemaless, &reader, &NullProgress).await;
+        assert_eq!(
+            outcome.errors,
+            ["create custom_field source_id: unknown field label on extras.custom_fields: NetBox would drop it"]
+        );
+        let checked = schemaless.checked.lock().unwrap().clone();
+        assert_eq!(checked[0], custom_fields::ENDPOINT);
+        assert!(checked.contains(&"virtualization.clusters".to_owned()), "{checked:?}");
+        assert_eq!((netbox.writes(), netbox.refused()), (Vec::new(), Vec::new()));
     }
 
     /// A host as a vCenter reports it, with the serial the vCenter knows.
@@ -1556,8 +2041,10 @@ mod tests {
     fn netbox_of_netbox_ssot() -> FakeGateway {
         let netbox = FakeGateway::new();
         let everything: Vec<&str> = Kind::ALL.into_iter().map(Kind::content_type).collect();
-        for name in ["source", "source_id", "host_cpu_cores", "host_memory", "arp_entry"] {
-            netbox.add("extras.custom_fields", serde_json::json!({"name": name, "object_types": everything}));
+        for definition in custom_fields::DEFINITIONS {
+            let field_type = definition.field_type.as_str();
+            let field = serde_json::json!({"name": definition.name, "type": field_type, "object_types": everything});
+            netbox.add(custom_fields::ENDPOINT, field);
         }
         netbox
     }

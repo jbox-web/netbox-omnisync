@@ -490,11 +490,54 @@ after everything is read, and a vCenter without datacenter is refused.
   `a_vcenter_without_datacenter_is_never_an_inventory`,
   `tags_that_cannot_be_read_fail_the_collection`
 
-**A custom field NetBox does not define stops the run, before any write.**
-NetBox refuses a write that carries it (`extras/api/customfields.py`): met at
-that write, the run would stop half way through its plan.
+**A custom field is created before the plan, and an existing one is only ever
+given object types.** NetBox refuses a write that carries a custom field it
+does not define for the object (`extras/api/customfields.py`): met at that
+write, the run would stop half way through its plan. The fields the writes of
+the plan carry (and no other: not what a source reports and nothing writes)
+are defined first, each on the kinds it is written on, without a default: a
+default is written by NetBox on every object of the type, and from 4.7 takes
+the field offline meanwhile. A definition NetBox holds keeps its label, its
+description, its type and every object type it has; one of another type, or
+that is not live, stops the run before any write. The definitions are read
+again before each write (NetBox replaces the list of object types) and once
+more before the plan, which never starts on a field it would be refused.
+- `crates/core/src/inventory/custom_fields.rs`:
+  `a_field_netbox_does_not_define_is_created_on_the_kinds_that_fill_it`,
+  `a_created_field_has_no_default`,
+  `a_field_that_lacks_an_object_type_gets_it_and_keeps_those_it_has`,
+  `a_definition_is_never_given_a_label_a_description_or_a_type_it_does_not_have`,
+  `a_field_of_another_type_is_an_error_naming_both_types`,
+  `a_field_netbox_is_still_provisioning_is_an_error`,
+  `a_field_without_a_readable_type_is_an_error`,
+  `a_field_whose_object_types_or_id_cannot_be_read_is_an_error`,
+  `a_field_the_plan_writes_that_the_catalogue_does_not_have_is_an_error`,
+  `only_the_fields_a_write_of_the_plan_sends_are_asked_for`
 - `crates/cli/src/hypervisors.rs`:
-  `a_custom_field_netbox_does_not_define_stops_the_run_before_any_write`
+  `a_custom_field_netbox_does_not_define_is_created_before_the_first_write_of_the_plan`,
+  `a_custom_field_that_lacks_an_object_type_is_given_it_before_the_plan`,
+  `a_custom_field_of_another_type_stops_the_run_before_any_write`,
+  `a_custom_field_netbox_refuses_to_create_stops_the_run_before_the_plan`,
+  `a_dry_run_reports_the_custom_fields_it_would_create_and_writes_none`,
+  `a_field_no_write_of_the_plan_sends_is_not_created`,
+  `a_field_netbox_takes_offline_once_extended_stops_the_run_before_the_plan`,
+  `the_object_types_another_run_added_meanwhile_are_kept`,
+  `a_definition_another_run_wrote_meanwhile_is_neither_written_nor_reported`,
+  `a_definition_another_run_wrote_over_stops_the_run_before_the_plan`,
+  `a_definition_that_changed_its_type_meanwhile_is_not_written_to`,
+  `a_definition_that_fails_after_another_was_written_stops_the_run_and_counts_the_first`,
+  `a_dry_run_checks_the_fields_of_the_definitions_it_would_write_and_those_of_the_plan`,
+  `a_field_two_sources_fill_is_created_once`, `a_second_run_creates_nothing`
+- `crates/cli/src/cli.rs`: `a_run_of_the_bmcs_alone_creates_no_custom_field`
+- `crates/netbox/src/testing.rs`:
+  `a_custom_field_that_is_not_defined_for_the_object_is_refused_as_in_netbox`,
+  `a_second_custom_field_of_the_same_name_is_refused_as_in_netbox`,
+  `a_field_with_a_default_given_a_large_type_is_taken_offline_as_in_netbox_4_7`
+  (the fake behaves as NetBox)
+- `crates/cli/tests/integration/hypervisors.rs`:
+  `a_netbox_without_the_custom_fields_gets_them_and_a_second_run_changes_nothing`,
+  `a_custom_field_that_lacks_an_object_type_is_extended_and_keeps_the_others`,
+  `a_custom_field_of_another_type_is_refused_and_nothing_is_written`
 
 **Only the custom fields the tool manages are sent.** From NetBox 4.7 a
 selection custom field is read as `{"value", "label"}`, which NetBox refuses
@@ -722,6 +765,10 @@ No test can guard these; reviews do.
 - The names NetBox has for a vendor and the slugs of what is created for a
   server are shared (`crates/core/src/inventory/hardware.rs`): two sources
   that describe the same hardware must name it alike.
+- A custom field a source fills is a definition of the catalogue
+  (`crates/core/src/inventory/custom_fields.rs`), which `Desired::custom_field`
+  takes instead of a name: a new field is added there, with its type, and the
+  run creates it where NetBox lacks it.
 - Output is deterministic: `BTreeMap`/`BTreeSet`, sorted steps, outcomes taken
   in configuration order whatever finishes first.
 - Comments say why, above the code; lines are 120 columns (`rustfmt.toml`).

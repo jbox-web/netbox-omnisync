@@ -14,6 +14,7 @@ use serde_json::Value;
 
 use crate::change::Fields;
 use crate::gateway::Row;
+use crate::inventory::custom_fields::Definition;
 
 /// Slug (and name) of the tag carried by every object the tool manages.
 pub const TOOL_TAG: &str = "netbox-omnisync";
@@ -630,8 +631,10 @@ impl Desired {
         self
     }
 
-    pub fn custom_field(mut self, name: &str, value: impl Into<Value>) -> Self {
-        self.custom_fields.insert(name.to_owned(), value.into());
+    /// Fills a custom field: one of the definitions the tool can create, so that
+    /// no source fills a field NetBox could only be given by hand.
+    pub fn custom_field(mut self, definition: &'static Definition, value: impl Into<Value>) -> Self {
+        self.custom_fields.insert(definition.name.to_owned(), value.into());
         self
     }
 

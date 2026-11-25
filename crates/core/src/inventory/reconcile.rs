@@ -1849,8 +1849,13 @@ mod tests {
     use crate::inventory::model::{VlanGroups, VlanScope, VrfKey};
 
     use super::*;
+    use crate::inventory::custom_fields::{self, Definition, FieldType};
 
     const PVE: &str = "pve1";
+
+    /// Custom fields of the tests alone: a field is reconciled whatever its name.
+    static UUID: Definition = Definition { name: "uuid", field_type: FieldType::Text, label: "UUID", description: "" };
+    static VMID: Definition = Definition { name: "vmid", field_type: FieldType::Text, label: "VMID", description: "" };
 
     fn row(value: Value) -> Row {
         value.as_object().cloned().expect("a JSON object")
@@ -2072,7 +2077,7 @@ mod tests {
 
     #[test]
     fn a_created_object_refers_to_an_existing_one_by_its_name_and_its_id() {
-        let wanted = vm("web01", PVE).custom_field("uuid", "42d0").tags(["service-apache"]);
+        let wanted = vm("web01", PVE).custom_field(&UUID, "42d0").tags(["service-apache"]);
         let plan = reconcile(&[wanted], &netbox([cluster_row()]), &run([source(PVE)]));
         assert_eq!(
             plan.changes(),
@@ -2739,7 +2744,7 @@ mod tests {
         value["custom_fields"] = json!({"owner_team": "web", "uuid": null, "vmid": 105});
         let current = netbox([cluster_row(), (kind, value)]);
         // `vmid` is already right, `owner_team` is not ours.
-        let wanted = vm("web01", PVE).custom_field("uuid", "42d0").custom_field("vmid", 105);
+        let wanted = vm("web01", PVE).custom_field(&UUID, "42d0").custom_field(&VMID, 105);
         assert_eq!(
             reconcile(&[wanted], &current, &run([source(PVE)])).changes(),
             [change("vm", Action::Update, "web01", "web01")
@@ -2774,7 +2779,7 @@ mod tests {
         let prefix = |source: &str| {
             Desired::new(Kind::Prefix, Identity::prefix("192.0.2.0/24", VrfKey::Unknown), source)
                 .field("prefix", "192.0.2.0/24")
-                .custom_field("source", source)
+                .custom_field(&custom_fields::SOURCE, source)
                 .ensure_only()
         };
         let plan = reconcile(&[prefix("vc1"), prefix("vc2")], &[], &run([source("vc1"), source("vc2")]));
@@ -2987,7 +2992,7 @@ mod tests {
     fn shared_prefix(source: &str) -> Desired {
         Desired::new(Kind::Prefix, Identity::prefix(SHARED, VrfKey::Unknown), source)
             .field("prefix", SHARED)
-            .custom_field("source", source)
+            .custom_field(&custom_fields::SOURCE, source)
             .ensure_only()
     }
 

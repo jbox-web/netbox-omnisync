@@ -635,9 +635,11 @@ this kind once a day.
   sites, manufacturers, device types, platforms, device roles, cluster types,
   cluster groups, clusters, VRFs, VLAN groups, VLANs, prefixes, devices,
   virtual machines, device and VM interfaces, virtual disks, MAC addresses and
-  IP addresses. For network sources: view on devices, virtual chassis and
-  VRFs; view, add, change and delete on interfaces, MAC addresses, IP
-  addresses, VLANs and cables; change on devices.
+  IP addresses; view, add and change on custom fields (add and change are only
+  used while a field, or one of its object types, is missing). For network
+  sources: view on devices, virtual chassis and VRFs; view, add, change and
+  delete on interfaces, MAC addresses, IP addresses, VLANs and cables; change
+  on devices.
 - **For network sources**, the devices exist already, named as the source (or,
   for a stack, as the members of the `virtual_chassis` named in the
   configuration, with their `vc_position`), and so do the VRFs the device
@@ -654,9 +656,27 @@ this kind once a day.
   NetBox requires: a VLAN whose name another VLAN of the group already has is
   an error naming both, and is not created. Network sources need view on VLAN
   groups.
-- **For Proxmox sources**, the custom fields netbox-ssot defined exist:
-  `source`, `source_id`, `host_cpu_cores`, `host_memory` and `arp_entry`. The
-  tool fills them and does not create them.
+- **For Proxmox and VMware sources**, the custom fields they fill are created
+  when NetBox does not define them, before the first write of the run:
+
+  | Custom field | Type | Filled by | On |
+  |---|---|---|---|
+  | `source` | text | Proxmox | every object the source writes: clusters, devices, interfaces, virtual machines, their interfaces and disks, IP addresses, prefixes |
+  | `source_id` | text | Proxmox | virtual machines (the VMID) |
+  | `host_cpu_cores` | text | Proxmox, VMware | devices |
+  | `host_memory` | text | Proxmox, VMware | devices |
+  | `arp_entry` | boolean | Proxmox | IP addresses (always `false`) |
+
+  A field is created on the kinds of object the run writes it on, and without
+  a default value. One NetBox already defines (netbox-ssot and netbox-sync
+  defined them, or somebody did) is used as it is: it is only ever given the
+  object types it lacks, and keeps its label, its description and the types
+  it has (if it was defined with a default, NetBox writes that default on
+  every object of a type the field is given, whoever owns them). A field
+  defined with another type stops the run before any write,
+  naming it. So does one NetBox is updating the stored data of (`provisioning`,
+  from NetBox 4.7, when a field that has a default is given an object type
+  with many objects): the next run goes through.
 
 ### Ownership tags
 

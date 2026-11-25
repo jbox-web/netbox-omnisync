@@ -10,6 +10,7 @@ use std::net::IpAddr;
 
 use omnisync_core::change::Action;
 use omnisync_core::gateway::Row;
+use omnisync_core::inventory::custom_fields;
 use omnisync_core::inventory::dns::Asked;
 use omnisync_core::inventory::identity::current_objects;
 use omnisync_core::inventory::model::{Current, Desired, Identity, Kind, TOOL_TAG, Target, VlanScope, VrfKey};
@@ -238,8 +239,8 @@ async fn the_addresses_of_8_4_get_the_names_a_reverse_lookup_gives() {
         .field("dns_name", "vm042.infra.example")
         .reference("tenant", Kind::Tenant, Identity::named("Example Tenant"))
         .reference("assigned_object", Kind::VmInterface, nic_identity(&vm, "ens18"))
-        .custom_field("arp_entry", false)
-        .custom_field("source", PVE_A);
+        .custom_field(&custom_fields::ARP_ENTRY, false)
+        .custom_field(&custom_fields::SOURCE, PVE_A);
     assert_eq!(one(&translation.objects, Kind::IpAddress, &address_identity("198.18.0.70")), address);
     // The lookup knows no other name: the 87 other addresses report none, and NetBox keeps what it has.
     let addresses = of_kind(&translation.objects, Kind::IpAddress);
@@ -259,9 +260,9 @@ async fn the_hosts_of_8_4() {
             .reference("tenant", Kind::Tenant, Identity::named("Example Tenant"))
             .reference("cluster", Kind::Cluster, Identity::named(CLUSTER_A))
             // "/nodes/<node>/status": "cpuinfo": { "cpus": 32 } on the three nodes.
-            .custom_field("host_cpu_cores", "32")
-            .custom_field("host_memory", memory)
-            .custom_field("source", PVE_A)
+            .custom_field(&custom_fields::HOST_CPU_CORES, "32")
+            .custom_field(&custom_fields::HOST_MEMORY, memory)
+            .custom_field(&custom_fields::SOURCE, PVE_A)
             // The generic device type only fills an empty field: one set by hand in NetBox is kept.
             .reference("device_type", Kind::DeviceType, Identity::device_type("Generic Manufacturer", "Generic Model"))
             .only_when_empty("device_type")
@@ -283,7 +284,7 @@ async fn the_hosts_of_8_4() {
             .field("name", name)
             .field("enabled", true)
             .reference("device", Kind::Device, Identity::device(device))
-            .custom_field("source", PVE_A)
+            .custom_field(&custom_fields::SOURCE, PVE_A)
     };
     let bond = interface("bond2").field("type", "lag");
     assert_eq!(one(objects, Kind::Interface, &Identity::interface(device, "bond2")), bond);
@@ -334,8 +335,8 @@ async fn a_tagged_docker_host_of_8_4_object_by_object() {
         .reference("platform", Kind::Platform, Identity::named("Debian GNU/Linux 12 (bookworm)"))
         .reference("primary_ip4", Kind::IpAddress, address_identity("198.18.0.70"))
         .tags(["service-oom"])
-        .custom_field("source", PVE_A)
-        .custom_field("source_id", "141");
+        .custom_field(&custom_fields::SOURCE, PVE_A)
+        .custom_field(&custom_fields::SOURCE_ID, "141");
     assert_eq!(one(objects, Kind::VirtualMachine, &identity), placed(expected, CLUSTER_A, "pve02.infra.example"));
 
     // ".../141/agent/network-get-interfaces" lists "lo", "ens18", eight "br-…", "docker0" and 21 "veth…":
@@ -354,7 +355,7 @@ async fn a_tagged_docker_host_of_8_4_object_by_object() {
         .field("name", "ens18")
         .reference("virtual_machine", Kind::VirtualMachine, identity.clone())
         .reference("primary_mac_address", Kind::MacAddress, mac.clone())
-        .custom_field("source", PVE_A);
+        .custom_field(&custom_fields::SOURCE, PVE_A);
     assert_eq!(one(objects, Kind::VmInterface, &ens18), interface);
     let mac_address = Desired::new(Kind::MacAddress, mac.clone(), PVE_A)
         .field("mac_address", "02:00:00:00:00:A1")
@@ -365,13 +366,13 @@ async fn a_tagged_docker_host_of_8_4_object_by_object() {
         .field("status", "active")
         .reference("tenant", Kind::Tenant, Identity::named("Example Tenant"))
         .reference("assigned_object", Kind::VmInterface, ens18)
-        .custom_field("arp_entry", false)
-        .custom_field("source", PVE_A);
+        .custom_field(&custom_fields::ARP_ENTRY, false)
+        .custom_field(&custom_fields::SOURCE, PVE_A);
     assert_eq!(one(objects, Kind::IpAddress, &address_identity("198.18.0.70")), address);
     // 198.18.0.70/26 is in 198.18.0.64/26.
     let prefix = Desired::new(Kind::Prefix, Identity::prefix("198.18.0.64/26", VrfKey::Unknown), PVE_A)
         .field("prefix", "198.18.0.64/26")
-        .custom_field("source", PVE_A)
+        .custom_field(&custom_fields::SOURCE, PVE_A)
         .ensure_only();
     assert_eq!(one(objects, Kind::Prefix, &Identity::prefix("198.18.0.64/26", VrfKey::Unknown)), prefix);
 
@@ -383,7 +384,7 @@ async fn a_tagged_docker_host_of_8_4_object_by_object() {
             .field("size", size)
             .field("description", name)
             .reference("virtual_machine", Kind::VirtualMachine, identity.clone())
-            .custom_field("source", PVE_A)
+            .custom_field(&custom_fields::SOURCE, PVE_A)
     };
     let disks: Vec<Desired> = of_kind(objects, Kind::VirtualDisk)
         .into_iter()
@@ -425,8 +426,8 @@ async fn a_stopped_windows_vm_of_8_4_object_by_object() {
         // 17179869184 / 1048576 = 16384
         .field("memory", 16_384)
         .tags(Vec::<String>::new())
-        .custom_field("source", PVE_A)
-        .custom_field("source_id", "167")
+        .custom_field(&custom_fields::SOURCE, PVE_A)
+        .custom_field(&custom_fields::SOURCE_ID, "167")
         // ".../qemu/167/config": "ostype": "win11" — proxmoxOSTypePlatformNames: "Microsoft Windows 11 (64-bit)",
         // written only when NetBox has no platform for this VM.
         .reference("platform", Kind::Platform, Identity::named("Microsoft Windows 11 (64-bit)"))
@@ -586,9 +587,9 @@ async fn the_hosts_of_9_2() {
         .reference("site", Kind::Site, Identity::named("Paris"))
         .reference("tenant", Kind::Tenant, Identity::named("Example Tenant"))
         .reference("cluster", Kind::Cluster, Identity::named(CLUSTER_B))
-        .custom_field("host_cpu_cores", "56")
-        .custom_field("host_memory", "503 GiB")
-        .custom_field("source", PVE_B)
+        .custom_field(&custom_fields::HOST_CPU_CORES, "56")
+        .custom_field(&custom_fields::HOST_MEMORY, "503 GiB")
+        .custom_field(&custom_fields::SOURCE, PVE_B)
         .reference("device_type", Kind::DeviceType, Identity::device_type("Generic Manufacturer", "Generic Model"))
         .only_when_empty("device_type");
     assert_eq!(one(objects, Kind::Device, &Identity::device(name)), expected);
@@ -630,8 +631,8 @@ async fn a_vm_of_9_2_with_two_interfaces_and_an_old_agent_object_by_object() {
         // The first "ipv4" address in the order of the agent: the one of "eth0".
         .reference("primary_ip4", Kind::IpAddress, address_identity("198.18.0.177"))
         .tags(["tag-1", "service-apache", "tag-2"])
-        .custom_field("source", PVE_B)
-        .custom_field("source_id", "105")
+        .custom_field(&custom_fields::SOURCE, PVE_B)
+        .custom_field(&custom_fields::SOURCE_ID, "105")
         // ".../qemu/105/config": "ostype": "l26" — proxmoxOSTypePlatformNames: "Other 2.6.x Linux (64-bit)",
         // written only when NetBox has no platform for this VM.
         .reference("platform", Kind::Platform, Identity::named("Other 2.6.x Linux (64-bit)"))
@@ -689,8 +690,8 @@ async fn a_vm_of_9_2_whose_agent_tells_its_system_object_by_object() {
         .reference("platform", Kind::Platform, Identity::named("Debian GNU/Linux 12 (bookworm)"))
         .reference("primary_ip4", Kind::IpAddress, address_identity("198.18.1.10"))
         .tags(["service-etcd"])
-        .custom_field("source", PVE_B)
-        .custom_field("source_id", "109");
+        .custom_field(&custom_fields::SOURCE, PVE_B)
+        .custom_field(&custom_fields::SOURCE_ID, "109");
     assert_eq!(one(objects, Kind::VirtualMachine, &identity), placed(expected, CLUSTER_B, "pve01.infra.example"));
 
     let platform = Desired::new(Kind::Platform, Identity::named("Debian GNU/Linux 12 (bookworm)"), PVE_B)
